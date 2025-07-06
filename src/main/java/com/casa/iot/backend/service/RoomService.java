@@ -1,41 +1,41 @@
 package com.casa.iot.backend.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
 import com.casa.iot.backend.model.Room;
+import com.casa.iot.backend.mqtt.MqttGateway;
 import com.casa.iot.backend.repository.RoomRepository;
 
 @Service
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final MqttGateway mqttGateway; // to send messages to iOT
 
-    public RoomService(RoomRepository roomRepository) {
-        this.roomRepository = roomRepository;
+    public RoomService(RoomRepository repo, MqttGateway gateway) {
+        this.roomRepository = repo;
+        this.mqttGateway = gateway;
     }
 
     public List<Room> getAllRooms() {
         return roomRepository.findAll();
     }
 
-    public Optional<Room> getRoomById(Long id) {
-        return roomRepository.findById(id);
+    public Room getRoom(String name) {
+        return roomRepository.findById(name).orElse(null);
     }
 
-    public Room saveRoom(Room room) {
-        return roomRepository.save(room);
+    public Room createRoom(String name) {
+        return roomRepository.findById(name).orElseGet(() -> roomRepository.save(new Room(name)));
     }
 
-    public Room updateLuz(Long id, boolean estado) {
-        Room room = roomRepository.findById(id).orElseThrow();
-        room.setLuzEncendida(estado);
-        return roomRepository.save(room);
-    }
-
-    public void deleteRoom(Long id) {
-        roomRepository.deleteById(id);
+    public void removeRoom(String roomName) {
+        Room room = roomRepository.findById(roomName).orElse(null);
+        if (room != null) {
+            roomRepository.delete(room);
+            mqttGateway.sendToMqtt("REMOVE", roomName); // Notify IoT system about the removal <- tiene el mqtt algun tipo de memoria?
+        }
     }
 }

@@ -4,6 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.casa.iot.backend.model.Room;
 
-public interface RoomRepository extends JpaRepository<Room, Long> {
-    Room findByNombre(String nombre); // útil para buscar por nombre
+public interface RoomRepository extends JpaRepository<Room, String> {
+    Room findByName(String name); // útil para buscar por nombre
 }

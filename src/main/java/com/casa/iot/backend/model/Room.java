@@ -1,56 +1,31 @@
 package com.casa.iot.backend.model;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
 public class Room {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String name;
 
-    private String nombre;
-    private boolean luzEncendida;
-    private boolean movimientoDetectado;
+    private boolean lightOn;
+    private boolean alarmOn;
 
-    // Constructores
     public Room() {}
 
-    public Room(String nombre) {
-        this.nombre = nombre;
-        this.luzEncendida = false;
-        this.movimientoDetectado = false;
+    public Room(String name) {
+        this.name = name;
+        this.lightOn = false;
+        this.alarmOn = false;
     }
 
-    // Getters y Setters
-    public Long getId() {
-        return id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getNombre() {
-        return nombre;
-    }
+    public boolean isLightOn() { return lightOn; }
+    public void setLightOn(boolean lightOn) { this.lightOn = lightOn; }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public boolean isLuzEncendida() {
-        return luzEncendida;
-    }
-
-    public void setLuzEncendida(boolean luzEncendida) {
-        this.luzEncendida = luzEncendida;
-    }
-
-    public boolean isMovimientoDetectado() {
-        return movimientoDetectado;
-    }
-
-    public void setMovimientoDetectado(boolean movimientoDetectado) {
-        this.movimientoDetectado = movimientoDetectado;
-    }
+    public boolean isAlarmOn() { return alarmOn; }
+    public void setAlarmOn(boolean alarmOn) { this.alarmOn = alarmOn; }
 }

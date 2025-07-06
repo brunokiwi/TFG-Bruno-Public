@@ -12,13 +12,11 @@ import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannel
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.messaging.MessagingException;
 
 @Configuration
-public class MqttBeans {
+public class MqttConfig {
     
     public MqttPahoClientFactory mqttClientFactory(){
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
@@ -52,19 +50,15 @@ public class MqttBeans {
     }    
 
     @Bean
-    @ServiceActivator(inputChannel="mqttInputChannel")
-    @SuppressWarnings("Convert2Lambda")
-    public MessageHandler handler(){
-        return new MessageHandler() {
-            @Override
-            public void handleMessage(Message<?> message) throws MessagingException {
-                String topic = message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC).toString();
-                if (topic.equals("myTopic"))
-                    System.out.println("this is our topic");
-                System.out.println(message.getPayload());
-            }
+    @ServiceActivator(inputChannel = "mqttInputChannel")
+    public MessageHandler handler(MqttEventHandler mqttEventHandler) {
+        return message -> {
+            String topic = message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC).toString();
+            String payload = message.getPayload().toString();
+            mqttEventHandler.handleMessage(topic, payload);
         };
     }
+
 
     // OUTBOUND / PUBLISHING
     @Bean
@@ -73,7 +67,7 @@ public class MqttBeans {
     }
 
     @Bean
-    @ServiceActivator(inputChannel="mqttInputChannel")
+    @ServiceActivator(inputChannel="mqttOutboundChannel")
     public MessageHandler mqttOutbound(){
         MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler("serverOut",mqttClientFactory());
 

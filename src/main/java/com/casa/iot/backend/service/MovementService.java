@@ -23,7 +23,7 @@ public class MovementService {
 
     public Room updateAlarm(String roomName, boolean state) {
         Room room = roomRepository.findById(roomName).orElse(new Room(roomName));
-        room.setLightOn(state);
+        room.setDetectOn(state);
         Room updated = roomRepository.save(room);
 
         // send to iot

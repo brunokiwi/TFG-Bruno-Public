@@ -56,4 +56,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // Para peticiones HTTP REST
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // Para JSON
+    implementation("com.google.code.gson:gson:2.10.1")
 }

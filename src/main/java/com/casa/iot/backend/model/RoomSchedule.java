@@ -26,6 +26,9 @@ public class RoomSchedule {
     private String type; // "light" o "alarm"
     private boolean state; // true=ON, false=OFF
 
+    @Column(name = "schedule_type")
+    private String scheduleType; // "punctual" o "interval"
+
     private LocalTime time;      // Para ejecución puntual (opcional)
     private LocalTime startTime; // Para intervalos (opcional)
     private LocalTime endTime;   // Para intervalos (opcional)
@@ -37,6 +40,7 @@ public class RoomSchedule {
         this.type = type;  
         this.state = state; 
         this.time = time;
+        this.scheduleType = "puntual";
     }
 
     public RoomSchedule(Room room, String type, boolean state, LocalTime startTime, LocalTime endTime) {
@@ -45,7 +49,9 @@ public class RoomSchedule {
         this.state = state;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.scheduleType = "intervalo";
     }
+
 
     public Long getId() {
         return id;
@@ -97,5 +103,13 @@ public class RoomSchedule {
 
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
+    }
+
+    public String getScheduleType() {
+        return scheduleType;
+    }
+
+    public void setScheduleType(String scheduleType) {
+        this.scheduleType = scheduleType;
     }
 }

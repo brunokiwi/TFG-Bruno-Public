@@ -28,11 +28,15 @@ public class RoomScheduleService {
         scheduleRepository.deleteById(id);
     }
 
-    public List<RoomSchedule> getSchedulesForTime(LocalTime time) {
-        return scheduleRepository.findByTimeHourAndTimeMinute(time.getHour(), time.getMinute());
-    }
-
     public List<RoomSchedule> getAllSchedules() {
         return scheduleRepository.findAll();
+    }
+
+    public List<RoomSchedule> getPunctualSchedulesForTime(LocalTime time) {
+        return scheduleRepository.findByScheduleTypeAndTimeHourAndTimeMinute("punctual", time.getHour(), time.getMinute());
+    }
+
+    public List<RoomSchedule> getAllIntervalSchedules() {
+        return scheduleRepository.findByScheduleType("interval");
     }
 }

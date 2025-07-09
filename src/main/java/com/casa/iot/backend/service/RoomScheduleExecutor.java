@@ -27,20 +27,18 @@ public class RoomScheduleExecutor {
     public void executeSchedules() {
         LocalTime now = LocalTime.now().withSecond(0).withNano(0);
 
-        // 1. Ejecuta programaciones puntuales
-        List<RoomSchedule> punctual = scheduleService.getSchedulesForTime(now);
+        // horarios puntuales
+        List<RoomSchedule> punctual = scheduleService.getPunctualSchedulesForTime(now);
         for (RoomSchedule schedule : punctual) {
             if (schedule.getTime() != null && schedule.getTime().getHour() == now.getHour() && schedule.getTime().getMinute() == now.getMinute()) {
                 execute(schedule);
             }
         }
 
-        // 2. Ejecuta programaciones por intervalo
-        List<RoomSchedule> all = scheduleService.getAllSchedules();
-        for (RoomSchedule schedule : all) {
-            if (schedule.getStartTime() != null && schedule.getEndTime() != null) {
-                executeIntervalSchedule(schedule, now);
-            }
+        // horarios de intervalo
+        List<RoomSchedule> intervalSchedules = scheduleService.getAllIntervalSchedules();
+        for (RoomSchedule schedule : intervalSchedules) {
+            executeIntervalSchedule(schedule, now);
         }
     }
 
@@ -50,11 +48,11 @@ public class RoomScheduleExecutor {
         
         if (room == null) return;
         
+        // Ver si estamos en el intervalo y si es necesario cambiar el estado del hardware 
         boolean shouldBeActive = isNowInInterval(now, schedule.getStartTime(), schedule.getEndTime());
         boolean currentState = getCurrentState(room, schedule.getType());
         boolean targetState = shouldBeActive ? schedule.isState() : !schedule.isState();
         
-        // Solo cambiar si el estado actual no coincide con el objetivo
         if (currentState != targetState) {
             execute(schedule, targetState);
         }
@@ -85,7 +83,7 @@ public class RoomScheduleExecutor {
     private boolean isNowInInterval(LocalTime now, LocalTime start, LocalTime end) {
         if (start.isBefore(end)) {
             return !now.isBefore(start) && now.isBefore(end);
-        } else { // Intervalo que cruza medianoche
+        } else {
             return !now.isBefore(start) || now.isBefore(end);
         }
     }

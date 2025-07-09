@@ -6,18 +6,18 @@ import jakarta.persistence.Id;
 @Entity
 public class Room {
 
-    @Id
+    @Id 
     private String name;
 
     private boolean lightOn;
-    private boolean alarmOn;
+    private boolean detectOn;
 
     public Room() {}
 
     public Room(String name) {
         this.name = name;
         this.lightOn = false;
-        this.alarmOn = false;
+        this.detectOn = false;
     }
 
     public String getName() { return name; }
@@ -26,6 +26,6 @@ public class Room {
     public boolean isLightOn() { return lightOn; }
     public void setLightOn(boolean lightOn) { this.lightOn = lightOn; }
 
-    public boolean isAlarmOn() { return alarmOn; }
-    public void setAlarmOn(boolean alarmOn) { this.alarmOn = alarmOn; }
+    public boolean isDetectOn() { return detectOn; }
+    public void setDetectOn(boolean detectOn) { this.detectOn = detectOn; }
 }

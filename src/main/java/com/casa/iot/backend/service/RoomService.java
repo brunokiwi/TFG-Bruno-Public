@@ -23,7 +23,7 @@ public class RoomService {
         return roomRepository.findAll();
     }
 
-    public Room getRoom(String name) {
+    public Room getRoomByName(String name) {
         return roomRepository.findById(name).orElse(null);
     }
 

@@ -26,7 +26,7 @@ public class MqttConfig {
         // options.setUsername("admin");
         // String pass = "12345678"
         // options.setPassword(pass.toCharArray());
-        options.setCleanSession(true);
+        options.setCleanSession(true); // resets everything al restart
         
         factory.setConnectionOptions(options);
         return factory;
@@ -41,9 +41,9 @@ public class MqttConfig {
     @Bean
     public MessageProducer inbound() {
         MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("serverIn", mqttClientFactory(), "#");
-        adapter.setCompletionTimeout(5000);
-        adapter.setConverter(new DefaultPahoMessageConverter());
-        adapter.setQos(2);
+        adapter.setCompletionTimeout(5000); // wait time for messages
+        adapter.setConverter(new DefaultPahoMessageConverter()); 
+        adapter.setQos(2); 
         adapter.setOutputChannel(mqttInputChannel());
 
         return adapter;

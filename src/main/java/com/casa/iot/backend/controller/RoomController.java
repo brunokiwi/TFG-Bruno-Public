@@ -38,7 +38,7 @@ public class RoomController {
 
     @GetMapping("/{roomName}")
     public Room getRoom(@PathVariable String roomName) {
-        return roomService.getRoom(roomName);
+        return roomService.getRoomByName(roomName);
     }
 
     @PostMapping("/{roomName}")
@@ -52,7 +52,7 @@ public class RoomController {
             @PathVariable String roomName,
             @RequestParam boolean state
     ) {
-        // si room no eixte, crearla con ese estado, sino cambiar el estado
+        // si room no eixte, crearla con ese estado, sino cambiar el estado TODO se deberia crear?
         return lightService.updateLight(roomName, state);
     }
 
@@ -61,7 +61,7 @@ public class RoomController {
             @PathVariable String roomName,
             @RequestParam boolean state
     ) {
-        // si room no eixte, crearla con ese estado, sino cambiar el estado
+        // si room no eixte, crearla con ese estado, sino cambiar el estado TODO se deberia crear?
         return movementService.updateAlarm(roomName, state);
     }
 

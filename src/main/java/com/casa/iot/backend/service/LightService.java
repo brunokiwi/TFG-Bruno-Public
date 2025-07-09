@@ -18,6 +18,8 @@ public class LightService {
     }
 
     public Room updateLight(String name, boolean lightOn) {
+        // TODO que se hace primero?
+        // update en bd
         Room room = roomRepository.findById(name).orElse(new Room(name));
         room.setLightOn(lightOn);
         Room updated = roomRepository.save(room);

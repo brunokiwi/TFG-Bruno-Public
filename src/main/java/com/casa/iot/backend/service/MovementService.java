@@ -17,7 +17,7 @@ public class MovementService {
     }
 
     public void handle(String room, String payload) {
-        // TODO Auto-generated method stub
+        // TODO recibir movimiento, guardar en bd? y enviar notificación a la app
         throw new UnsupportedOperationException("Unimplemented method 'handle'");
     }
 

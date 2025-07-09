@@ -23,7 +23,7 @@ public class MqttEventHandler {
         String room = parts[0];
         String subtopic = parts[1];
         
-        switch (subtopic) {
+        switch (subtopic) { // TODO: implementar y enum?
             case "lig":
                 lightService.handle(room, payload);
                 break;

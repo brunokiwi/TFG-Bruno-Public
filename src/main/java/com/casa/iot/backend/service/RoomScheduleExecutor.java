@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.casa.iot.backend.model.Room;
 import com.casa.iot.backend.model.RoomSchedule;
 
 @Component
@@ -13,14 +14,15 @@ public class RoomScheduleExecutor {
     private final RoomScheduleService scheduleService;
     private final LightService lightService;
     private final MovementService movementService;
+    private final RoomService roomService;
 
-    public RoomScheduleExecutor(RoomScheduleService scheduleService, LightService lightService, MovementService movementService) {
+    public RoomScheduleExecutor(RoomScheduleService scheduleService, LightService lightService, MovementService movementService, RoomService roomService) {
         this.scheduleService = scheduleService;
         this.lightService = lightService;
         this.movementService = movementService;
+        this.roomService = roomService;
     }
 
-    // Ejecuta cada minuto
     @Scheduled(cron = "0 * * * * *")
     public void executeSchedules() {
         LocalTime now = LocalTime.now().withSecond(0).withNano(0);
@@ -37,20 +39,46 @@ public class RoomScheduleExecutor {
         List<RoomSchedule> all = scheduleService.getAllSchedules();
         for (RoomSchedule schedule : all) {
             if (schedule.getStartTime() != null && schedule.getEndTime() != null) {
-                if (isNowInInterval(now, schedule.getStartTime(), schedule.getEndTime())) {
-                    execute(schedule);
-                }
+                executeIntervalSchedule(schedule, now);
             }
         }
     }
 
-    private void execute(RoomSchedule schedule) {
+    private void executeIntervalSchedule(RoomSchedule schedule, LocalTime now) {
         String roomName = schedule.getRoomName();
-        boolean state = schedule.isState();
+        Room room = roomService.getRoomByName(roomName);
+        
+        if (room == null) return;
+        
+        boolean shouldBeActive = isNowInInterval(now, schedule.getStartTime(), schedule.getEndTime());
+        boolean currentState = getCurrentState(room, schedule.getType());
+        boolean targetState = shouldBeActive ? schedule.isState() : !schedule.isState();
+        
+        // Solo cambiar si el estado actual no coincide con el objetivo
+        if (currentState != targetState) {
+            execute(schedule, targetState);
+        }
+    }
+
+    private boolean getCurrentState(Room room, String type) {
+        if ("light".equals(type)) {
+            return room.isLightOn();
+        } else if ("alarm".equals(type)) {
+            return room.isDetectOn();
+        }
+        return false;
+    }
+
+    private void execute(RoomSchedule schedule) {
+        execute(schedule, schedule.isState());
+    }
+
+    private void execute(RoomSchedule schedule, boolean targetState) {
+        String roomName = schedule.getRoomName();
         if ("light".equals(schedule.getType())) {
-            lightService.updateLight(roomName, state);
+            lightService.updateLight(roomName, targetState);
         } else if ("alarm".equals(schedule.getType())) {
-            movementService.updateAlarm(roomName, state);
+            movementService.updateAlarm(roomName, targetState);
         }
     }
 

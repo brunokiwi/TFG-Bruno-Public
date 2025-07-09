@@ -89,7 +89,7 @@ class RoomDetailActivity : ComponentActivity() {
     }
 
     private fun displaySchedules(roomName: String, schedules: List<Schedule>) {
-        schedulesTitle.text = "Horarios"
+        schedulesTitle.text = "$roomName : horarios"
 
         if (schedules.isEmpty()) {
             schedulesText.text = "No hay horarios programados"
@@ -103,7 +103,8 @@ class RoomDetailActivity : ComponentActivity() {
                 }
 
                 val stateText = if (schedule.state) "ON" else "OFF"
-                "ID: ${schedule.id}\nTipo: ${schedule.type}\nEstado: $stateText\n$timeInfo"
+                val displayName = if (schedule.name != null) schedule.name else "ID: ${schedule.id}"
+                "$displayName\nTipo: ${schedule.type}\nEstado: $stateText\n$timeInfo"
             }
             schedulesText.text = schedulesInfo
         }

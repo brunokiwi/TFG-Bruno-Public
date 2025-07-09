@@ -33,6 +33,7 @@ public class RoomScheduleController {
             @PathVariable String roomName,
             @RequestParam String type, // "light" o "alarm"
             @RequestParam boolean state,
+            @RequestParam(required = false) String name,      // Nombre opcional del schedule
             @RequestParam(required = false) String time,      // formato "HH:mm", para puntual
             @RequestParam(required = false) String startTime, // formato "HH:mm", para intervalo
             @RequestParam(required = false) String endTime    // formato "HH:mm", para intervalo
@@ -52,6 +53,12 @@ public class RoomScheduleController {
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes especificar 'time' o 'startTime' y 'endTime'");
         }
+        
+        // Establecer el nombre si se proporciona
+        if (name != null && !name.trim().isEmpty()) {
+            schedule.setName(name.trim());
+        }
+        
         return scheduleService.createSchedule(schedule);
     }
 

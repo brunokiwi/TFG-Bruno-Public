@@ -2,6 +2,7 @@ package com.casa.iot.backend.model;
 
 import java.time.LocalTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,6 +19,9 @@ public class RoomSchedule {
     @ManyToOne
     @JoinColumn(name = "room_name", referencedColumnName = "name")
     private Room room;
+
+    @Column(length = 60)
+    private String name; // Nombre opcional del schedule
 
     private String type; // "light" o "alarm"
     private boolean state; // true=ON, false=OFF
@@ -53,6 +57,14 @@ public class RoomSchedule {
 
     public String getRoomName() {
         return room != null ? room.getName() : null;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getType() {

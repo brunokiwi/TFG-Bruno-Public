@@ -11,9 +11,8 @@ class ApiService {
     private val client: OkHttpClient
     private val gson = Gson()
 
-    // Cambia esta IP por la IP de tu backend (localhost no funciona en emulador)
-    private val baseUrl = "http://10.0.2.2:8080" // Para emulador Android
-    // Si usas dispositivo físico: "http://TU_IP_LOCAL:8080"
+    // ip del pc "http://TU_IP_LOCAL:8080"
+    private val baseUrl = "http://192.168.1.57:8080"
 
     init {
         val logging = HttpLoggingInterceptor()
@@ -22,6 +21,22 @@ class ApiService {
         client = OkHttpClient.Builder()
             .addInterceptor(logging)
             .build()
+    }
+
+    // check conexion
+    fun checkServerConnection(): Boolean {
+        val request = Request.Builder()
+            .url("$baseUrl/hello")  // Endpoint simple para verificar conexión
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
     }
 
     fun getAllRooms(): List<Room> {

@@ -24,7 +24,13 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.mainlayout)
 
         setupRecyclerView()
-        checkConnectionAndLoadRooms()  // Cambiado: primero verificar conexión
+        checkConnectionAndLoadRooms()
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Recargar datos cuando regrese de otra actividad
+        loadRooms()
     }
 
     private fun setupRecyclerView() {
@@ -81,8 +87,6 @@ class MainActivity : ComponentActivity() {
                     roomAdapter.updateRooms(rooms)
                     if (rooms.isEmpty()) {
                         Toast.makeText(this@MainActivity, "No hay habitaciones registradas", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this@MainActivity, "✅ ${rooms.size} habitaciones cargadas", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {

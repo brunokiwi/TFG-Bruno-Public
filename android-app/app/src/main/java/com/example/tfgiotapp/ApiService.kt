@@ -2,6 +2,7 @@ package com.example.tfgiotapp
 
 import android.util.Log
 import com.example.tfgiotapp.model.Room
+import com.example.tfgiotapp.model.Schedule
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -27,7 +28,7 @@ class ApiService {
 
     fun updateLight(roomName: String, state: Boolean): Boolean {
         Log.d("ApiService", "Actualizando luz de $roomName a ${if (state) "ON" else "OFF"}")
-        
+
         val request = Request.Builder()
             .url("$baseUrl/rooms/$roomName/light?state=$state")
             .post(RequestBody.create(null, ""))
@@ -46,7 +47,7 @@ class ApiService {
 
     fun updateAlarm(roomName: String, state: Boolean): Boolean {
         Log.d("ApiService", "Actualizando alarma de $roomName a ${if (state) "ON" else "OFF"}")
-        
+
         val request = Request.Builder()
             .url("$baseUrl/rooms/$roomName/alarm?state=$state")
             .post(RequestBody.create(null, ""))
@@ -112,6 +113,24 @@ class ApiService {
         } catch (e: Exception) {
             e.printStackTrace()
             return null
+        }
+    }
+
+    fun getRoomSchedules(roomName: String): List<Schedule> {
+        val request = Request.Builder()
+            .url("$baseUrl/rooms/$roomName/schedules")
+            .build()
+
+        try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return emptyList()
+
+                val jsonResponse = response.body?.string() ?: "[]"
+                return gson.fromJson(jsonResponse, Array<Schedule>::class.java).toList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return emptyList()
         }
     }
 }

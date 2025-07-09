@@ -31,8 +31,11 @@
 
         <Switch
             android:id="@+id/lightSwitch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="80dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:scaleX="1.2"
+            android:scaleY="1.2" />
 
     </LinearLayout>
 
@@ -52,9 +55,48 @@
 
         <Switch
             android:id="@+id/detectSwitch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="80dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:scaleX="1.2"
+            android:scaleY="1.2" />
 
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/schedulesTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Horarios:"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="8dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/schedulesText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cargando horarios..."
+            android:textSize="14sp"
+            android:textColor="#333333"
+            android:padding="12dp"
+            android:background="#e0e0e0"
+            android:layout_marginBottom="16dp" />
+
+    </ScrollView>
+
+    <Button
+        android:id="@+id/updateButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Actualizar"
+        android:textSize="16sp"
+        android:layout_marginTop="16dp" />
 
 </LinearLayout>

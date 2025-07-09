@@ -1,11 +1,13 @@
 package com.example.tfgiotapp
 
 import android.os.Bundle
+import android.widget.Button
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import com.example.tfgiotapp.model.Room
+import com.example.tfgiotapp.model.Schedule
 import com.example.tfgiotapp.ApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,6 +18,9 @@ class RoomDetailActivity : ComponentActivity() {
     private lateinit var roomNameTextView: TextView
     private lateinit var lightSwitch: Switch
     private lateinit var detectSwitch: Switch
+    private lateinit var schedulesTitle: TextView
+    private lateinit var schedulesText: TextView
+    private lateinit var updateButton: Button
     private val apiService = ApiService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,8 +30,16 @@ class RoomDetailActivity : ComponentActivity() {
         roomNameTextView = findViewById(R.id.roomNameDetail)
         lightSwitch = findViewById(R.id.lightSwitch)
         detectSwitch = findViewById(R.id.detectSwitch)
+        schedulesTitle = findViewById(R.id.schedulesTitle)
+        schedulesText = findViewById(R.id.schedulesText)
+        updateButton = findViewById(R.id.updateButton)
 
         val roomName = intent.getStringExtra("roomName") ?: ""
+
+        updateButton.setOnClickListener {
+            loadRoomDetail(roomName)
+        }
+
         loadRoomDetail(roomName)
     }
 
@@ -34,9 +47,12 @@ class RoomDetailActivity : ComponentActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val room = apiService.getRoomByName(roomName)
+                val schedules = apiService.getRoomSchedules(roomName)
+
                 withContext(Dispatchers.Main) {
                     if (room != null) {
                         displayRoomInfo(room)
+                        displaySchedules(roomName, schedules)
                     } else {
                         Toast.makeText(this@RoomDetailActivity, "Habitación no encontrada", Toast.LENGTH_SHORT).show()
                     }
@@ -44,6 +60,7 @@ class RoomDetailActivity : ComponentActivity() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@RoomDetailActivity, "Error al cargar detalle", Toast.LENGTH_SHORT).show()
+                    schedulesText.text = "Error al cargar horarios"
                 }
             }
         }
@@ -51,26 +68,47 @@ class RoomDetailActivity : ComponentActivity() {
 
     private fun displayRoomInfo(room: Room) {
         roomNameTextView.text = room.name
-        
+
         // Temporalmente quitar listeners para evitar llamadas no deseadas
         lightSwitch.setOnCheckedChangeListener(null)
         detectSwitch.setOnCheckedChangeListener(null)
-        
+
         // Establecer el estado de los switches
         lightSwitch.isChecked = room.lightOn
         detectSwitch.isChecked = room.detectOn
-        
+
         // Restaurar listeners
         val roomName = room.name
         lightSwitch.setOnCheckedChangeListener { _, isChecked ->
             updateLight(roomName, isChecked)
         }
-        
+
         detectSwitch.setOnCheckedChangeListener { _, isChecked ->
             updateDetect(roomName, isChecked)
         }
     }
-    
+
+    private fun displaySchedules(roomName: String, schedules: List<Schedule>) {
+        schedulesTitle.text = "$roomName : horarios"
+
+        if (schedules.isEmpty()) {
+            schedulesText.text = "No hay horarios programados"
+        } else {
+            val schedulesInfo = schedules.joinToString("\n\n") { schedule ->
+                val timeInfo = when {
+                    schedule.time != null -> "Hora: ${schedule.time}"
+                    schedule.startTime != null && schedule.endTime != null ->
+                        "Desde: ${schedule.startTime} hasta: ${schedule.endTime}"
+                    else -> "Sin hora definida"
+                }
+
+                val stateText = if (schedule.state) "ON" else "OFF"
+                "ID: ${schedule.id}\nTipo: ${schedule.type}\nEstado: $stateText\n$timeInfo"
+            }
+            schedulesText.text = schedulesInfo
+        }
+    }
+
     private fun updateLight(roomName: String, state: Boolean) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -99,7 +137,7 @@ class RoomDetailActivity : ComponentActivity() {
             }
         }
     }
-    
+
     private fun updateDetect(roomName: String, state: Boolean) {
         CoroutineScope(Dispatchers.IO).launch {
             try {

@@ -89,7 +89,7 @@ class RoomDetailActivity : ComponentActivity() {
     }
 
     private fun displaySchedules(roomName: String, schedules: List<Schedule>) {
-        schedulesTitle.text = "$roomName : horarios"
+        schedulesTitle.text = "Horarios"
 
         if (schedules.isEmpty()) {
             schedulesText.text = "No hay horarios programados"

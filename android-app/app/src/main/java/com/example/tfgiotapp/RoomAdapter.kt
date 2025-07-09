@@ -5,7 +5,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.tfgiotapp.R
 import com.example.tfgiotapp.model.Room
 
 class RoomAdapter(
@@ -27,7 +26,11 @@ class RoomAdapter(
     override fun onBindViewHolder(holder: RoomViewHolder, position: Int) {
         val room = rooms[position]
         holder.roomName.text = room.name
-        holder.roomStatus.text = if (room.lightOn) "Luz: ON" else "Luz: OFF"
+        
+        // Mostrar AMBOS estados: luz Y sensor
+        val lightStatus = if (room.lightOn) "Luz: ON" else "Luz: OFF"
+        val sensorStatus = if (room.detectOn) "Sensor: ON" else "Sensor: OFF"
+        holder.roomStatus.text = "$lightStatus | $sensorStatus"
 
         holder.itemView.setOnClickListener {
             onRoomClick(room)

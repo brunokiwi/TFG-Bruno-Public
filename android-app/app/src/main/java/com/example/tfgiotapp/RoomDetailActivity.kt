@@ -1,6 +1,7 @@
 package com.example.tfgiotapp
 
 import android.os.Bundle
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -13,8 +14,8 @@ import kotlinx.coroutines.withContext
 
 class RoomDetailActivity : ComponentActivity() {
     private lateinit var roomNameTextView: TextView
-    private lateinit var lightStatusTextView: TextView
-    private lateinit var detectStatusTextView: TextView
+    private lateinit var lightSwitch: Switch
+    private lateinit var detectSwitch: Switch
     private val apiService = ApiService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,8 +23,8 @@ class RoomDetailActivity : ComponentActivity() {
         setContentView(R.layout.activity_room_detail)
 
         roomNameTextView = findViewById(R.id.roomNameDetail)
-        lightStatusTextView = findViewById(R.id.lightStatus)
-        detectStatusTextView = findViewById(R.id.detectStatus)
+        lightSwitch = findViewById(R.id.lightSwitch)
+        detectSwitch = findViewById(R.id.detectSwitch)
 
         val roomName = intent.getStringExtra("roomName") ?: ""
         loadRoomDetail(roomName)
@@ -50,7 +51,81 @@ class RoomDetailActivity : ComponentActivity() {
 
     private fun displayRoomInfo(room: Room) {
         roomNameTextView.text = room.name
-        lightStatusTextView.text = "Luz: ${if (room.lightOn) "ON" else "OFF"}"
-        detectStatusTextView.text = "Detección: ${if (room.detectOn) "ON" else "OFF"}"
+        
+        // Temporalmente quitar listeners para evitar llamadas no deseadas
+        lightSwitch.setOnCheckedChangeListener(null)
+        detectSwitch.setOnCheckedChangeListener(null)
+        
+        // Establecer el estado de los switches
+        lightSwitch.isChecked = room.lightOn
+        detectSwitch.isChecked = room.detectOn
+        
+        // Restaurar listeners
+        val roomName = room.name
+        lightSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateLight(roomName, isChecked)
+        }
+        
+        detectSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateDetect(roomName, isChecked)
+        }
+    }
+    
+    private fun updateLight(roomName: String, state: Boolean) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val success = apiService.updateLight(roomName, state)
+                withContext(Dispatchers.Main) {
+                    if (!success) {
+                        // Revertir el switch sin activar el listener
+                        lightSwitch.setOnCheckedChangeListener(null)
+                        lightSwitch.isChecked = !state
+                        lightSwitch.setOnCheckedChangeListener { _, isChecked ->
+                            updateLight(roomName, isChecked)
+                        }
+                        Toast.makeText(this@RoomDetailActivity, "Error al actualizar la luz", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    // Revertir el switch sin activar el listener
+                    lightSwitch.setOnCheckedChangeListener(null)
+                    lightSwitch.isChecked = !state
+                    lightSwitch.setOnCheckedChangeListener { _, isChecked ->
+                        updateLight(roomName, isChecked)
+                    }
+                    Toast.makeText(this@RoomDetailActivity, "Error de conexión", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
+    private fun updateDetect(roomName: String, state: Boolean) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val success = apiService.updateAlarm(roomName, state)
+                withContext(Dispatchers.Main) {
+                    if (!success) {
+                        // Revertir el switch sin activar el listener
+                        detectSwitch.setOnCheckedChangeListener(null)
+                        detectSwitch.isChecked = !state
+                        detectSwitch.setOnCheckedChangeListener { _, isChecked ->
+                            updateDetect(roomName, isChecked)
+                        }
+                        Toast.makeText(this@RoomDetailActivity, "Error al actualizar el detector", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    // Revertir el switch sin activar el listener
+                    detectSwitch.setOnCheckedChangeListener(null)
+                    detectSwitch.isChecked = !state
+                    detectSwitch.setOnCheckedChangeListener { _, isChecked ->
+                        updateDetect(roomName, isChecked)
+                    }
+                    Toast.makeText(this@RoomDetailActivity, "Error de conexión", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 }

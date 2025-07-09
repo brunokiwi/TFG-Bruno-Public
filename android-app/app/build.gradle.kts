@@ -56,8 +56,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    // Para peticiones HTTP REST
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // Para JSON
     implementation("com.google.code.gson:gson:2.10.1")
+    // Para peticiones HTTP
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    // Para RecyclerView (lista de habitaciones)
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    // Para Material Design
+    implementation("com.google.android.material:material:1.11.0")
 }

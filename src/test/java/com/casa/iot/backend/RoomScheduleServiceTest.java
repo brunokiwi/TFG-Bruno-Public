@@ -63,7 +63,7 @@ class RoomScheduleServiceTest {
         RoomSchedule schedule = new RoomSchedule(room, "light", true, LocalTime.of(20, 0));
         when(scheduleRepository.findByTimeHourAndTimeMinute(20, 0)).thenReturn(Collections.singletonList(schedule));
 
-        List<RoomSchedule> result = scheduleService.getSchedulesForTime(LocalTime.of(20, 0));
+        List<RoomSchedule> result = scheduleService.getPunctualSchedulesForTime(LocalTime.of(20, 0));
 
         assertEquals(1, result.size());
         assertEquals(LocalTime.of(20, 0), result.get(0).getTime());

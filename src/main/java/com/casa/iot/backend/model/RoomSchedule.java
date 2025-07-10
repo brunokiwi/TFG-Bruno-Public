@@ -77,7 +77,7 @@ public class RoomSchedule {
         return type;
     }
 
-    public boolean isState() {
+    public boolean getState() {
         return state;
     }
 

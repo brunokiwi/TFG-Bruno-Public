@@ -49,12 +49,11 @@ public class RoomScheduleExecutor {
         if (room == null) return;
         
         // Ver si estamos en el intervalo y si es necesario cambiar el estado del hardware 
-        boolean shouldBeActive = isNowInInterval(now, schedule.getStartTime(), schedule.getEndTime());
+        boolean shouldBeOn = isNowInInterval(now, schedule.getStartTime(), schedule.getEndTime());
         boolean currentState = getCurrentState(room, schedule.getType());
-        boolean targetState = shouldBeActive ? schedule.isState() : !schedule.isState();
         
-        if (currentState != targetState) {
-            execute(schedule, targetState);
+        if (currentState != shouldBeOn) { // si no esta como debe
+            execute(schedule, shouldBeOn);
         }
     }
 
@@ -67,8 +66,8 @@ public class RoomScheduleExecutor {
         return false;
     }
 
-    private void execute(RoomSchedule schedule) {
-        execute(schedule, schedule.isState());
+    private void execute(RoomSchedule schedule) { // solo puntuales
+        execute(schedule, schedule.getState());
     }
 
     private void execute(RoomSchedule schedule, boolean targetState) {

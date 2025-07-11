@@ -133,4 +133,52 @@ class ApiService {
             return emptyList()
         }
     }
+
+    fun createPunctualSchedule(roomName: String, name: String, type: String, state: Boolean, time: String): Boolean {
+        val request = Request.Builder()
+            .url("$baseUrl/rooms/$roomName/schedules?name=$name&type=$type&state=$state&time=$time")
+            .post(RequestBody.create(null, ""))
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    fun createIntervalSchedule(roomName: String, name: String, type: String, startTime: String, endTime: String): Boolean {
+        val request = Request.Builder()
+            .url("$baseUrl/rooms/$roomName/schedules?name=$name&type=$type&state=true&startTime=$startTime&endTime=$endTime")
+            .post(RequestBody.create(null, ""))
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    fun deleteSchedule(roomName: String, scheduleId: Long): Boolean {
+        val request = Request.Builder()
+            .url("$baseUrl/rooms/$roomName/schedules/$scheduleId")
+            .delete()
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
 }

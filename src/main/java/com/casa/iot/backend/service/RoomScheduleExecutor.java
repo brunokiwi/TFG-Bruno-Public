@@ -73,9 +73,9 @@ public class RoomScheduleExecutor {
     private void execute(RoomSchedule schedule, boolean targetState) {
         String roomName = schedule.getRoomName();
         if ("light".equals(schedule.getType())) {
-            lightService.updateLight(roomName, targetState);
+            lightService.sendLightCommand(roomName, targetState);
         } else if ("alarm".equals(schedule.getType())) {
-            movementService.updateAlarm(roomName, targetState);
+            movementService.sendAlarmCommand(roomName, targetState);
         }
     }
 

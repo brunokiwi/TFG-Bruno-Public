@@ -20,18 +20,25 @@ public class MqttEventHandler {
     public void handleMessage(String topic, String payload) {
         String[] parts = topic.split("/");
         if (parts.length < 2) return;
-        String room = parts[0];
-        String subtopic = parts[1];
         
-        switch (subtopic) { // TODO: implementar y enum?
+        String room = parts[0];
+        String subsystem = parts[1]; // lig, mov, sou
+        String messageType = parts.length > 2 ? parts[2] : "event";
+        
+        switch (subsystem) {
             case "lig":
-                lightService.handle(room, payload);
+                if ("confirmation".equals(messageType)) {
+                    lightService.handleConfirmation(room, payload);
+                } else { // manual
+                    lightService.handle(room, payload);
+                }
                 break;
             case "mov":
-                movementService.handle(room, payload);
-                break;
-            case "sou":
-                soundService.handle(room, payload);
+                if ("confirmation".equals(messageType)) {
+                    movementService.handleConfirmation(room, payload); // TODO
+                } else {
+                    movementService.handle(room, payload);
+                }
                 break;
         }
     }

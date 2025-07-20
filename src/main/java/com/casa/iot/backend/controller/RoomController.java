@@ -76,12 +76,39 @@ public class RoomController {
     }
 
     @PostMapping("/{roomName}/alarm")
-    public Room updateAlarm(
+    public ResponseEntity<?> updateAlarm(
             @PathVariable String roomName,
             @RequestParam boolean state
     ) {
-        // si room no eixte, crearla con ese estado, sino cambiar el estado TODO se deberia crear?
-        return movementService.updateAlarm(roomName, state);
+        try {
+            // mqtt
+            movementService.sendAlarmCommand(roomName, state);
+            
+            // lazy response
+            return ResponseEntity.ok(Map.of(
+                "message", "Comando enviado al sensor",
+                "roomName", roomName,
+                "requestedState", state ? "ON" : "OFF",
+                "status", "PENDING"
+            ));
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                .body(Map.of(
+                    "error", "Error al enviar comando al sensor",
+                    "message", e.getMessage()
+                ));
+        }
+    }
+
+    @GetMapping
+    public List<Room> getAllRooms() {
+        return roomService.getAllRooms();
+    }
+
+    @GetMapping("/{roomName}")
+    public Room getRoomByName(@PathVariable String roomName) {
+        return roomService.getRoomByName(roomName);
     }
 
     @PostMapping("/{roomName}/remove")

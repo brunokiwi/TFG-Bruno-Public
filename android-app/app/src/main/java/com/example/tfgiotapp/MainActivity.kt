@@ -2,6 +2,7 @@ package com.example.tfgiotapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,6 +18,7 @@ import kotlinx.coroutines.withContext
 class MainActivity : ComponentActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var roomAdapter: RoomAdapter
+    private lateinit var updateButton: Button
     private val apiService = ApiService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,6 +26,7 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.mainlayout)
 
         setupRecyclerView()
+        setupUpdateButton()
         checkConnectionAndLoadRooms()
     }
     
@@ -43,6 +46,13 @@ class MainActivity : ComponentActivity() {
         recyclerView.adapter = roomAdapter
     }
 
+    private fun setupUpdateButton() {
+        updateButton = findViewById(R.id.updateButton)
+        updateButton.setOnClickListener {
+            loadRooms()
+        }
+    }
+
     private fun checkConnectionAndLoadRooms() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -57,7 +67,6 @@ class MainActivity : ComponentActivity() {
                             Toast.LENGTH_LONG
                         ).show()
 
-                        // 2. Si está conectado, cargar habitaciones
                         loadRooms()
                     } else {
                         Toast.makeText(

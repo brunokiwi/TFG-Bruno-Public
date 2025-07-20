@@ -1,5 +1,6 @@
 package com.example.tfgiotapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Switch
@@ -21,6 +22,7 @@ class RoomDetailActivity : ComponentActivity() {
     private lateinit var schedulesTitle: TextView
     private lateinit var schedulesText: TextView
     private lateinit var updateButton: Button
+    private lateinit var editSchedulesButton: Button
     private val apiService = ApiService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,13 +35,20 @@ class RoomDetailActivity : ComponentActivity() {
         schedulesTitle = findViewById(R.id.schedulesTitle)
         schedulesText = findViewById(R.id.schedulesText)
         updateButton = findViewById(R.id.updateButton)
+        editSchedulesButton = findViewById(R.id.editSchedulesButton)
 
         val roomName = intent.getStringExtra("roomName") ?: ""
-
+        
         updateButton.setOnClickListener {
             loadRoomDetail(roomName)
         }
-
+        
+        editSchedulesButton.setOnClickListener {
+            val intent = Intent(this, ManageSchedulesActivity::class.java)
+            intent.putExtra("roomName", roomName)
+            startActivity(intent)
+        }
+        
         loadRoomDetail(roomName)
     }
 
@@ -89,19 +98,19 @@ class RoomDetailActivity : ComponentActivity() {
     }
 
     private fun displaySchedules(roomName: String, schedules: List<Schedule>) {
-        schedulesTitle.text = "$roomName : horarios"
-
+        schedulesTitle.text = "Horarios:" 
+        
         if (schedules.isEmpty()) {
             schedulesText.text = "No hay horarios programados"
         } else {
             val schedulesInfo = schedules.joinToString("\n\n") { schedule ->
                 val timeInfo = when {
                     schedule.time != null -> "Hora: ${schedule.time}"
-                    schedule.startTime != null && schedule.endTime != null ->
+                    schedule.startTime != null && schedule.endTime != null -> 
                         "Desde: ${schedule.startTime} hasta: ${schedule.endTime}"
                     else -> "Sin hora definida"
                 }
-
+                
                 val stateText = if (schedule.state) "ON" else "OFF"
                 val displayName = if (schedule.name != null) schedule.name else "ID: ${schedule.id}"
                 "$displayName\nTipo: ${schedule.type}\nEstado: $stateText\n$timeInfo"

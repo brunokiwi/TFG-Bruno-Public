@@ -46,8 +46,8 @@ public class RoomScheduleController {
             // hora exacta + accion
             schedule = new RoomSchedule(room, type, state, java.time.LocalTime.parse(time));
         } else if (startTime != null && endTime != null) {
-            // accion en intervalo
-            schedule = new RoomSchedule(room, type, state, null);
+            // accion en intervalo, solo puede ser true (es decir, encender)
+            schedule = new RoomSchedule(room, type, true, null);
             schedule.setStartTime(java.time.LocalTime.parse(startTime));
             schedule.setEndTime(java.time.LocalTime.parse(endTime));
         } else {

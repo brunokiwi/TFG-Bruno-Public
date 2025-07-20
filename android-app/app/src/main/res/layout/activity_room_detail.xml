@@ -63,15 +63,31 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/schedulesTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Horarios:"
-        android:textSize="18sp"
-        android:textStyle="bold"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:layout_marginTop="24dp"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/schedulesTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Horarios:"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/editSchedulesButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Editar"
+            android:textSize="14sp" />
+
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"

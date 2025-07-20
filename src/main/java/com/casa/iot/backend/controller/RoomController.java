@@ -15,38 +15,19 @@ import com.casa.iot.backend.model.Room;
 import com.casa.iot.backend.service.LightService;
 import com.casa.iot.backend.service.MovementService;
 import com.casa.iot.backend.service.RoomService;
-import com.casa.iot.backend.service.SoundService;
 
 @RestController
 @RequestMapping("/rooms")
 public class RoomController {
-
+    
+    private final RoomService roomService;
     private final LightService lightService;
     private final MovementService movementService;
-    private final SoundService soundService;
-    private final RoomService roomService;
 
-    public RoomController(RoomService roomService, LightService lightService, MovementService movementService, SoundService soundService) {
+    public RoomController(RoomService roomService, LightService lightService, MovementService movementService) {
         this.roomService = roomService;
         this.lightService = lightService;
         this.movementService = movementService;
-        this.soundService = soundService;
-    }
-
-    @GetMapping
-    public List<Room> getRooms() {
-        return roomService.getAllRooms();
-    }
-
-    @GetMapping("/{roomName}")
-    public Room getRoom(@PathVariable String roomName) {
-        return roomService.getRoomByName(roomName);
-    }
-
-    @PostMapping("/{roomName}")
-    public Room createRoom(@PathVariable String roomName) {
-        // si room no existe, crearla con estado por defecto
-        return roomService.createRoom(roomName);
     }
 
     @PostMapping("/{roomName}/light")
@@ -55,7 +36,7 @@ public class RoomController {
             @RequestParam boolean state
     ) {
         try {
-            // mqqtt
+            // solo mqtt
             lightService.sendLightCommand(roomName, state);
             
             // respuesta inmediata (lazy)
@@ -81,10 +62,10 @@ public class RoomController {
             @RequestParam boolean state
     ) {
         try {
-            // mqtt
+            // solo mqtt
             movementService.sendAlarmCommand(roomName, state);
             
-            // lazy response
+            // respuesta inmediata (lazy)
             return ResponseEntity.ok(Map.of(
                 "message", "Comando enviado al sensor",
                 "roomName", roomName,

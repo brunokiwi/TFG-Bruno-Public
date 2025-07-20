@@ -1,7 +1,9 @@
 package com.casa.iot.backend.controller;
 
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,12 +50,29 @@ public class RoomController {
     }
 
     @PostMapping("/{roomName}/light")
-    public Room updateLight(
+    public ResponseEntity<?> updateLight(
             @PathVariable String roomName,
             @RequestParam boolean state
     ) {
-        // si room no eixte, crearla con ese estado, sino cambiar el estado TODO se deberia crear?
-        return lightService.updateLight(roomName, state);
+        try {
+            // mqqtt
+            lightService.sendLightCommand(roomName, state);
+            
+            // respuesta inmediata (lazy)
+            return ResponseEntity.ok(Map.of(
+                "message", "Comando enviado al dispositivo",
+                "roomName", roomName,
+                "requestedState", state ? "ON" : "OFF",
+                "status", "PENDING"
+            ));
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                .body(Map.of(
+                    "error", "Error al enviar comando",
+                    "message", e.getMessage()
+                ));
+        }
     }
 
     @PostMapping("/{roomName}/alarm")

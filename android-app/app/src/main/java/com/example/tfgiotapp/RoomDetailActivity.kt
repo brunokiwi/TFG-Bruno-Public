@@ -124,25 +124,31 @@ class RoomDetailActivity : ComponentActivity() {
             try {
                 val success = apiService.updateLight(roomName, state)
                 withContext(Dispatchers.Main) {
-                    if (!success) {
-                        // Revertir el switch sin activar el listener
+                    if (success) {
+                        // MENSAJE ACTUALIZADO para reflejar el nuevo flujo
+                        Toast.makeText(this@RoomDetailActivity, 
+                            "Comando enviado - esperando confirmación del dispositivo", 
+                            Toast.LENGTH_SHORT).show()
+                    } else {
+                        // Revertir el switch si falla el envío
                         lightSwitch.setOnCheckedChangeListener(null)
                         lightSwitch.isChecked = !state
                         lightSwitch.setOnCheckedChangeListener { _, isChecked ->
                             updateLight(roomName, isChecked)
                         }
-                        Toast.makeText(this@RoomDetailActivity, "Error al actualizar la luz", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@RoomDetailActivity, 
+                            "Error al enviar comando", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    // Revertir el switch sin activar el listener
                     lightSwitch.setOnCheckedChangeListener(null)
                     lightSwitch.isChecked = !state
                     lightSwitch.setOnCheckedChangeListener { _, isChecked ->
                         updateLight(roomName, isChecked)
                     }
-                    Toast.makeText(this@RoomDetailActivity, "Error de conexión", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@RoomDetailActivity, 
+                        "Error de conexión: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -153,25 +159,30 @@ class RoomDetailActivity : ComponentActivity() {
             try {
                 val success = apiService.updateAlarm(roomName, state)
                 withContext(Dispatchers.Main) {
-                    if (!success) {
-                        // Revertir el switch sin activar el listener
+                    if (success) {
+                        // MENSAJE ACTUALIZADO
+                        Toast.makeText(this@RoomDetailActivity, 
+                            "Comando enviado - esperando confirmación del sensor", 
+                            Toast.LENGTH_SHORT).show()
+                    } else {
                         detectSwitch.setOnCheckedChangeListener(null)
                         detectSwitch.isChecked = !state
                         detectSwitch.setOnCheckedChangeListener { _, isChecked ->
                             updateDetect(roomName, isChecked)
                         }
-                        Toast.makeText(this@RoomDetailActivity, "Error al actualizar el detector", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@RoomDetailActivity, 
+                            "Error al enviar comando al sensor", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    // Revertir el switch sin activar el listener
                     detectSwitch.setOnCheckedChangeListener(null)
                     detectSwitch.isChecked = !state
                     detectSwitch.setOnCheckedChangeListener { _, isChecked ->
                         updateDetect(roomName, isChecked)
                     }
-                    Toast.makeText(this@RoomDetailActivity, "Error de conexión", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@RoomDetailActivity, 
+                        "Error de conexión: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }

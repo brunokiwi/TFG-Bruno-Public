@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.tfgiotapp.model.Room
 import com.example.tfgiotapp.model.Schedule
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -36,8 +37,27 @@ class ApiService {
 
         return try {
             client.newCall(request).execute().use { response ->
-                Log.d("ApiService", "Respuesta luz: ${response.code}")
-                response.isSuccessful
+                Log.d("ApiService", "Respuesta comando luz: ${response.code}")
+                
+                if (response.isSuccessful) {
+                    // Parsear la nueva respuesta del backend
+                    val responseBody = response.body?.string()
+                    Log.d("ApiService", "Respuesta luz: $responseBody")
+                    
+                    try {
+                        val jsonResponse = gson.fromJson(responseBody, JsonObject::class.java)
+                        val status = jsonResponse.get("status")?.asString
+                        Log.d("ApiService", "Status comando luz: $status")
+                        
+                        // Comando enviado correctamente (aunque pendiente de confirmación IoT)
+                        status == "PENDING"
+                    } catch (e: Exception) {
+                        Log.w("ApiService", "Error parsing respuesta luz: ${e.message}")
+                        true // Asumir éxito si no se puede parsear
+                    }
+                } else {
+                    false
+                }
             }
         } catch (e: Exception) {
             Log.e("ApiService", "Error al actualizar luz: ${e.message}", e)
@@ -55,8 +75,25 @@ class ApiService {
 
         return try {
             client.newCall(request).execute().use { response ->
-                Log.d("ApiService", "Respuesta alarma: ${response.code}")
-                response.isSuccessful
+                Log.d("ApiService", "Respuesta comando sensor: ${response.code}")
+                
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    Log.d("ApiService", "Respuesta sensor: $responseBody")
+                    
+                    try {
+                        val jsonResponse = gson.fromJson(responseBody, JsonObject::class.java)
+                        val status = jsonResponse.get("status")?.asString
+                        Log.d("ApiService", "Status comando sensor: $status")
+                        
+                        status == "PENDING"
+                    } catch (e: Exception) {
+                        Log.w("ApiService", "Error parsing respuesta sensor: ${e.message}")
+                        true
+                    }
+                } else {
+                    false
+                }
             }
         } catch (e: Exception) {
             Log.e("ApiService", "Error al actualizar alarma: ${e.message}", e)

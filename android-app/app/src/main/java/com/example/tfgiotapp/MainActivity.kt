@@ -1,15 +1,22 @@
 package com.example.tfgiotapp
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tfgiotapp.RoomAdapter
 import com.example.tfgiotapp.model.Room
 import com.example.tfgiotapp.ApiService
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,6 +34,9 @@ class MainActivity : ComponentActivity() {
 
         setupRecyclerView()
         setupUpdateButton()
+        // notificatio nstuf
+        requestNotificationPermission()
+        subscribeToMovementAlerts()
         checkConnectionAndLoadRooms()
     }
     
@@ -110,5 +120,36 @@ class MainActivity : ComponentActivity() {
         val intent = Intent(this, RoomDetailActivity::class.java)
         intent.putExtra("roomName", room.name)
         startActivity(intent)
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            Log.d("MainActivity", "Permiso de notificaciones concedido")
+        } else {
+            Log.d("MainActivity", "Permiso de notificaciones denegado")
+        }
+    }
+
+    private fun subscribeToMovementAlerts() {
+        FirebaseMessaging.getInstance().subscribeToTopic("movement_alerts")
+            .addOnCompleteListener { task ->
+                var msg = "Suscrito a alertas de movimiento"
+                if (!task.isSuccessful) {
+                    msg = "Error en suscripcion"
+                }
+                Log.d("MainActivity", msg)
+            }
     }
 }

@@ -10,5 +10,8 @@ public class SoundService {
         throw new UnsupportedOperationException("Unimplemented method 'handle'");
     }
 
-    
+    public void handleConfirmation(String room, String payload) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handle'");
+    }
 }

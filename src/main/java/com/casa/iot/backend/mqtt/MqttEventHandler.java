@@ -18,28 +18,51 @@ public class MqttEventHandler {
     }
 
     public void handleMessage(String topic, String payload) {
+        System.out.println("MQTT recibido - Topic: " + topic + ", Payload: " + payload);
+        
         String[] parts = topic.split("/");
-        if (parts.length < 2) return;
+        if (parts.length < 3) {
+            if (parts.length >= 2) {
+                String room = parts[0];
+                movementService.handle(room, payload);
+            }
+            return;
+        }
         
         String room = parts[0];
         String subsystem = parts[1]; // lig, mov, sou
-        String messageType = parts.length > 2 ? parts[2] : "event";
+        String messageType = parts[2]; // event, confirmation, command
+        
+        // IGNORAR comandos que nosotros mismos enviamos
+        if ("command".equals(messageType)) {
+            System.out.println("Ignorando comando saliente: " + topic);
+            return;
+        }
         
         switch (subsystem) {
             case "lig":
                 if ("confirmation".equals(messageType)) {
                     lightService.handleConfirmation(room, payload);
-                } else { // manual
+                } else if ("event".equals(messageType)) {
                     lightService.handle(room, payload);
                 }
                 break;
             case "mov":
                 if ("confirmation".equals(messageType)) {
-                    movementService.handleConfirmation(room, payload); // TODO
-                } else {
+                    movementService.handleConfirmation(room, payload);
+                } else if ("event".equals(messageType)) {
                     movementService.handle(room, payload);
                 }
                 break;
+            case "sou":
+                if ("confirmation".equals(messageType)) {
+                    soundService.handleConfirmation(room, payload);
+                } else if ("event".equals(messageType)) {
+                    soundService.handle(room, payload);
+                }
+                break;
+            default:
+                System.out.println("Subsistema no reconocido: " + subsystem);
         }
     }
 }

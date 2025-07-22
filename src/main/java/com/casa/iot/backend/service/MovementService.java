@@ -12,10 +12,12 @@ import com.google.gson.JsonParser;
 public class MovementService {
     private final MqttGateway mqttGateway;
     private final RoomRepository roomRepository;
+    private final NotificationService notificationService;
 
-    public MovementService(RoomRepository repo, MqttGateway gateway) {
+    public MovementService(RoomRepository repo, MqttGateway gateway, NotificationService notificationService) {
         this.roomRepository = repo;
         this.mqttGateway = gateway;
+        this.notificationService = notificationService;
     }
 
     // SOLO envía comando al sensor - NO actualiza BD
@@ -46,21 +48,30 @@ public class MovementService {
                                  json.get("error").getAsString());
             }
         } catch (Exception e) {
-            System.err.println("Error al procesar confirmación del sensor: " + e.getMessage());
+            System.err.println("Error al procesar confirmacion del sensor: " + e.getMessage());
         }
     }
 
     // Maneja eventos de detección de movimiento
     public void handle(String room, String payload) {
         try {
+            System.out.println("Movimiento recibido del sensor en " + room + ": " + payload);
             // Evento de movimiento: {"event":"MOVEMENT_DETECTED","timestamp":"2024-01-20T15:30:00"}
             JsonObject json = JsonParser.parseString(payload).getAsJsonObject();
             String event = json.get("event").getAsString();
             
+            // notificacion
+            //TODO: Ejecutar acciones automáticas (encender luz, etc.)
             if ("MOVEMENT_DETECTED".equals(event)) {
-                System.out.println("Movimiento detectado en " + room);
-                // TODO: Enviar notificación push a la app
-                // TODO: Ejecutar acciones automáticas (encender luz, etc.)
+                Room roomEntity = roomRepository.findById(room).orElse(null);
+                
+                if (roomEntity != null && roomEntity.isDetectOn()) {
+                    System.out.println("Movimiento detectado en " + room + " - Enviando notificacion");
+                    notificationService.sendMovementAlert(room);
+                } else {
+                    System.out.println("Movimiento detectado en " + room + " - Sensor desactivado, no se envia notificacion");
+                }
+                
             } else if ("ALARM_CHANGED".equals(event)) {
                 // Cambio manual del sensor (activado/desactivado físicamente)
                 String state = json.get("state").getAsString();

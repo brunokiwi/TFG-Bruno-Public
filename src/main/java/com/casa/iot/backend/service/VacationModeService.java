@@ -1,8 +1,10 @@
 package com.casa.iot.backend.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ public class VacationModeService {
     private final LightService lightService;
     private final AtomicBoolean vacationModeActive = new AtomicBoolean(false);
     private final Random random = new Random();
+    private List<String> roomNamesCache = new ArrayList<>();
     
     public VacationModeService(RoomRepository roomRepository, MovementService movementService, LightService lightService) {
         this.roomRepository = roomRepository;
@@ -27,11 +30,16 @@ public class VacationModeService {
     
     public void activateVacationMode() {
         vacationModeActive.set(true);
+        roomNamesCache = roomRepository.findAll()
+                                       .stream()
+                                       .map(Room::getName)
+                                       .collect(Collectors.toList());
         activateAllMotionSensors();
     }
     
     public void deactivateVacationMode() {
         vacationModeActive.set(false);
+        roomNamesCache.clear();  // limpiar cache
     }
     
     public boolean isVacationModeActive() {
@@ -47,14 +55,12 @@ public class VacationModeService {
     
     @Scheduled(fixedRate = 60000)
     public void simulateRandomActivity() {
-        if (!vacationModeActive.get()) return;
-        
-        List<Room> rooms = roomRepository.findAll();
-        if (rooms.isEmpty()) return;
-        
-        Room randomRoom = rooms.get(random.nextInt(rooms.size()));
+        if (!vacationModeActive.get() || roomNamesCache.isEmpty()) {
+            return;
+        }
+        // cogemos habitacion del cache para ahorrar accesos a bd
+        String randomRoom = roomNamesCache.get(random.nextInt(roomNamesCache.size()));
         boolean randomState = random.nextBoolean();
-        
-        lightService.sendLightCommand(randomRoom.getName(), randomState);
+        lightService.sendLightCommand(randomRoom, randomState);
     }
 }

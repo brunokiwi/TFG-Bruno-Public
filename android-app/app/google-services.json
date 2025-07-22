@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "917485287434",
+    "project_id": "intento-78792",
+    "storage_bucket": "intento-78792.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:917485287434:android:cab3f9330cb7cab2ec87f3",
+        "android_client_info": {
+          "package_name": "com.com.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3Caef1dGbbVH2_8IA0Atkkm6WaBiQzNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:917485287434:android:3a6124c79ed7643aec87f3",
+        "android_client_info": {
+          "package_name": "com.example.tfgiotapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3Caef1dGbbVH2_8IA0Atkkm6WaBiQzNw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

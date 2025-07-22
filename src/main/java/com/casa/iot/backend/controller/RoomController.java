@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.casa.iot.backend.model.Room;
+import com.casa.iot.backend.service.AuthService;
 import com.casa.iot.backend.service.LightService;
 import com.casa.iot.backend.service.MovementService;
 import com.casa.iot.backend.service.RoomService;
@@ -23,11 +24,13 @@ public class RoomController {
     private final RoomService roomService;
     private final LightService lightService;
     private final MovementService movementService;
+    private final AuthService authService;
 
-    public RoomController(RoomService roomService, LightService lightService, MovementService movementService) {
+    public RoomController(RoomService roomService, LightService lightService, MovementService movementService, AuthService authService ) {
         this.roomService = roomService;
         this.lightService = lightService;
         this.movementService = movementService;
+        this.authService = authService;
     }
 
     @PostMapping("/{roomName}/light")
@@ -92,8 +95,38 @@ public class RoomController {
         return roomService.getRoomByName(roomName);
     }
 
+    // TODO: solo admins pueden 
     @PostMapping("/{roomName}/remove")
     public void removeRoom(@PathVariable String roomName) {
         roomService.removeRoom(roomName);
+    }
+
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createRoom(
+            @RequestParam String roomName,
+            @RequestParam String username) {
+        
+        try {
+            // Verificar que el usuario sea admin
+            if (!authService.isAdmin(username)) {
+                return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "Solo los administradores pueden crear habitaciones"
+                ));
+            }
+            
+            Room room = roomService.createRoom(roomName);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Habitacion creada exitosamente",
+                "room", room
+            ));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Error al crear habitacion: " + e.getMessage()
+            ));
+        }
     }
 }

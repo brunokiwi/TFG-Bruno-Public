@@ -6,10 +6,13 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,21 +31,112 @@ class MainActivity : ComponentActivity() {
     private lateinit var updateButton: Button
     private val apiService = ApiService()
 
+    private lateinit var createRoomButton: Button
+    private lateinit var logoutButton: Button
+    private lateinit var userPreferences: UserPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        userPreferences = UserPreferences(this)
+        
+        // Verificar autenticación
+        if (!userPreferences.isLoggedIn()) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+        
         setContentView(R.layout.mainlayout)
 
         setupRecyclerView()
         setupUpdateButton()
-        // notificatio nstuf
+        setupAdminButtons()
+        
         requestNotificationPermission()
         subscribeToMovementAlerts()
         checkConnectionAndLoadRooms()
     }
     
+    private fun setupAdminButtons() {
+        createRoomButton = findViewById(R.id.createRoomButton)
+        logoutButton = findViewById(R.id.logoutButton)
+        
+        // Mostrar botón crear habitación solo a admins
+        if (userPreferences.isAdmin()) {
+            createRoomButton.visibility = View.VISIBLE
+            createRoomButton.setOnClickListener {
+                showCreateRoomDialog()
+            }
+        } else {
+            createRoomButton.visibility = View.GONE
+        }
+        
+        logoutButton.setOnClickListener {
+            logout()
+        }
+
+    }
+    
+    private fun showCreateRoomDialog() {
+        val builder = AlertDialog.Builder(this)
+        val input = EditText(this)
+        input.hint = "Nombre de la habitación"
+        
+        builder.setTitle("Crear Nueva Habitación")
+        builder.setView(input)
+        
+        builder.setPositiveButton("Crear") { _, _ ->
+            val roomName = input.text.toString().trim()
+            if (roomName.isNotEmpty()) {
+                createNewRoom(roomName)
+            } else {
+                Toast.makeText(this, "Por favor ingresa un nombre", Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        builder.setNegativeButton("Cancelar") { dialog, _ ->
+            dialog.cancel()
+        }
+        
+        builder.show()
+    }
+    
+    private fun createNewRoom(roomName: String) {
+        val currentUser = userPreferences.getCurrentUser()
+        if (currentUser == null) {
+            Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val success = apiService.createRoom(roomName, currentUser.username)
+                
+                withContext(Dispatchers.Main) {
+                    if (success) {
+                        Toast.makeText(this@MainActivity, "Habitación '$roomName' creada exitosamente", Toast.LENGTH_SHORT).show()
+                        loadRooms()
+                    } else {
+                        Toast.makeText(this@MainActivity, "Error al crear la habitación", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "Error de conexión: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+    
+    private fun logout() {
+        userPreferences.logout()
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+    }
+    
     override fun onResume() {
         super.onResume()
-        // Recargar datos cuando regrese de otra actividad
         loadRooms()
     }
 
@@ -66,7 +160,6 @@ class MainActivity : ComponentActivity() {
     private fun checkConnectionAndLoadRooms() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // probar conexion
                 val isConnected = apiService.checkServerConnection()
 
                 withContext(Dispatchers.Main) {
@@ -90,7 +183,7 @@ class MainActivity : ComponentActivity() {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         this@MainActivity,
-                        "❌ Error de conexión: ${e.message}",
+                        "Error de conexión: ${e.message}",
                         Toast.LENGTH_LONG
                     ).show()
                 }

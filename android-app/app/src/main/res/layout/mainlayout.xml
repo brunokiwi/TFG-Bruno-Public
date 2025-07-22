@@ -13,6 +13,15 @@
         android:textStyle="bold"
         android:gravity="center"
         android:layout_marginBottom="16dp" />
+    
+    <Button
+        android:id="@+id/createRoomButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Crear Nueva Habitacion"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        android:backgroundTint="#4CAF50" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewRooms"
@@ -27,5 +36,11 @@
         android:text="Actualizar"
         android:textSize="16sp"
         android:layout_marginTop="16dp" />
-
+    <Button
+        android:id="@+id/logoutButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cerrar Sesion"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="#f44336" />
 </LinearLayout>

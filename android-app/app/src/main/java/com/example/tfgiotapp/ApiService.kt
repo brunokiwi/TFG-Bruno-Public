@@ -1,10 +1,12 @@
 package com.example.tfgiotapp
 
 import android.util.Log
+import com.example.tfgiotapp.model.LoginResponse
 import com.example.tfgiotapp.model.Room
 import com.example.tfgiotapp.model.Schedule
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -101,7 +103,6 @@ class ApiService {
         }
     }
 
-    // Resto de métodos existentes...
     fun checkServerConnection(): Boolean {
         val request = Request.Builder()
             .url("$baseUrl/hello")
@@ -215,6 +216,76 @@ class ApiService {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            false
+        }
+    }
+
+    fun login(username: String, password: String): LoginResponse? {
+        val credentials = mapOf(
+            "username" to username,
+            "password" to password
+        )
+
+        val jsonBody = gson.toJson(credentials)
+        val requestBody = RequestBody.create(
+            "application/json; charset=utf-8".toMediaType(),
+            jsonBody
+        )
+
+        val request = Request.Builder()
+            .url("$baseUrl/auth/login")
+            .post(requestBody)
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                val responseBody = response.body?.string() ?: return null
+
+                if (response.isSuccessful) {
+                    gson.fromJson(responseBody, LoginResponse::class.java)
+                } else {
+                    // Error HTTP específico (401, 403, etc.)
+                    val errorResponse = try {
+                        gson.fromJson(responseBody, LoginResponse::class.java)
+                    } catch (e: Exception) {
+                        LoginResponse(false, "Error de autenticacion: ${response.code}", null)
+                    }
+                    errorResponse
+                }
+            }
+        } catch (e: java.net.ConnectException) {
+            Log.e("ApiService", "Error de conexion - servidor no alcanzable: ${e.message}", e)
+            LoginResponse(false, "SERVER_UNREACHABLE", null)
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e("ApiService", "Timeout de conexion: ${e.message}", e)
+            LoginResponse(false, "CONNECTION_TIMEOUT", null)
+        } catch (e: java.net.UnknownHostException) {
+            Log.e("ApiService", "Host no encontrado: ${e.message}", e)
+            LoginResponse(false, "HOST_NOT_FOUND", null)
+        } catch (e: Exception) {
+            Log.e("ApiService", "Error general en login: ${e.message}", e)
+            LoginResponse(false, "NETWORK_ERROR", null)
+        }
+    }
+
+    fun createRoom(roomName: String, username: String): Boolean {
+        val request = Request.Builder()
+            .url("$baseUrl/rooms?roomName=$roomName&username=$username")
+            .post(RequestBody.create(null, ""))
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    val jsonResponse = gson.fromJson(responseBody, JsonObject::class.java)
+                    jsonResponse.get("success")?.asBoolean ?: false
+                } else {
+                    false
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ApiService", "Error creando habitacion: ${e.message}", e)
             false
         }
     }

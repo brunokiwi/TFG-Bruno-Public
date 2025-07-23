@@ -15,6 +15,15 @@
         android:layout_marginBottom="16dp" />
     
     <Button
+        android:id="@+id/vacationModeButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Activar Modo Vacaciones"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        android:backgroundTint="#2196F3" />
+    
+    <Button
         android:id="@+id/createRoomButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

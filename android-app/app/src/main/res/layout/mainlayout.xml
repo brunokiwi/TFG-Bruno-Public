@@ -23,6 +23,15 @@
         android:visibility="gone"
         android:backgroundTint="#4CAF50" />
 
+    <Button
+        android:id="@+id/viewEventsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ver Todos los Eventos"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        android:backgroundTint="#FF9800" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewRooms"
         android:layout_width="match_parent"
@@ -36,6 +45,7 @@
         android:text="Actualizar"
         android:textSize="16sp"
         android:layout_marginTop="16dp" />
+        
     <Button
         android:id="@+id/logoutButton"
         android:layout_width="match_parent"
@@ -43,4 +53,5 @@
         android:text="Cerrar Sesion"
         android:layout_marginTop="16dp"
         android:backgroundTint="#f44336" />
+
 </LinearLayout>

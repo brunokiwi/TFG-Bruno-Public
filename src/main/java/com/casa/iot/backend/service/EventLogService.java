@@ -30,7 +30,7 @@ public class EventLogService {
         try {
             Event event = Event.userAction(action, roomName, userId, details);
             eventRepository.save(event);
-            System.out.println("🔷 USER ACTION: " + userId + " - " + action + " en " + roomName);
+            System.out.println("USER ACTION: " + userId + " - " + action + " en " + roomName);
         } catch (Exception e) {
             System.err.println("Error logging user action: " + e.getMessage());
         }
@@ -42,7 +42,7 @@ public class EventLogService {
         try {
             Event event = Event.systemAction(action, roomName, details, source);
             eventRepository.save(event);
-            System.out.println("⚙️ SYSTEM ACTION: " + action + " en " + roomName + " (" + source + ")");
+            System.out.println("SYSTEM ACTION: " + action + " en " + roomName + " (" + source + ")");
         } catch (Exception e) {
             System.err.println("Error logging system action: " + e.getMessage());
         }
@@ -133,7 +133,7 @@ public class EventLogService {
             int deletedCount = eventRepository.deleteEventsOlderThan(cutoffDate);
             
             if (deletedCount > 0) {
-                System.out.println("🧹 CLEANUP: Eliminados " + deletedCount + " eventos antiguos");
+                System.out.println("CLEANUP: Eliminados " + deletedCount + " eventos antiguos");
                 
                 // logear limpieza
                 Event cleanupEvent = Event.systemAction("CLEANUP_COMPLETED", null, 
@@ -144,6 +144,30 @@ public class EventLogService {
         } catch (Exception e) {
             System.err.println("Error durante limpieza de logs: " + e.getMessage());
         }
+    }
+
+    @Async
+    public CompletableFuture<Void> logVacationModeActivated(String userId, String details) {
+        try {
+            Event event = Event.userAction("VACATION_MODE_ACTIVATED", null, userId, details);
+            eventRepository.save(event);
+            System.out.println("VACATION MODE: Activado por " + userId);
+        } catch (Exception e) {
+            System.err.println("Error logging vacation mode activation: " + e.getMessage());
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+    
+    @Async
+    public CompletableFuture<Void> logVacationModeDeactivated(String userId, String details) {
+        try {
+            Event event = Event.userAction("VACATION_MODE_DEACTIVATED", null, userId, details);
+            eventRepository.save(event);
+            System.out.println("VACATION MODE: Desactivado por " + userId);
+        } catch (Exception e) {
+            System.err.println("Error logging vacation mode deactivation: " + e.getMessage());
+        }
+        return CompletableFuture.completedFuture(null);
     }
     
 }

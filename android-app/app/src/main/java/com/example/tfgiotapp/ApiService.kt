@@ -1,9 +1,11 @@
 package com.example.tfgiotapp
 
 import android.util.Log
+import com.example.tfgiotapp.model.Event
 import com.example.tfgiotapp.model.LoginResponse
 import com.example.tfgiotapp.model.Room
 import com.example.tfgiotapp.model.Schedule
+import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import okhttp3.MediaType.Companion.toMediaType
@@ -287,6 +289,31 @@ class ApiService {
         } catch (e: Exception) {
             Log.e("ApiService", "Error creando habitacion: ${e.message}", e)
             false
+        }
+    }
+
+     fun getAllEvents(): List<Event> {
+        Log.d("ApiService", "Obteniendo todos los eventos")
+
+        val request = Request.Builder()
+            .url("$baseUrl/events/recent?hours=168") // últimas 168 horas (7 días)
+            .get()
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    val eventListType = object : TypeToken<List<Event>>() {}.type
+                    gson.fromJson(responseBody, eventListType) ?: emptyList()
+                } else {
+                    Log.e("ApiService", "Error al obtener eventos: ${response.code}")
+                    emptyList()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ApiService", "Error al obtener eventos: ${e.message}", e)
+            emptyList()
         }
     }
 }

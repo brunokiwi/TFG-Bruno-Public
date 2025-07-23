@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.casa.iot.backend.model.Room;
 import com.casa.iot.backend.service.AuthService;
+import com.casa.iot.backend.service.EventLogService;
 import com.casa.iot.backend.service.LightService;
 import com.casa.iot.backend.service.MovementService;
 import com.casa.iot.backend.service.RoomService;
@@ -25,21 +26,26 @@ public class RoomController {
     private final LightService lightService;
     private final MovementService movementService;
     private final AuthService authService;
+    private final EventLogService eventLogService;
 
-    public RoomController(RoomService roomService, LightService lightService, MovementService movementService, AuthService authService ) {
+    public RoomController(RoomService roomService, LightService lightService, 
+                         MovementService movementService, AuthService authService, 
+                         EventLogService eventLogService) {
         this.roomService = roomService;
         this.lightService = lightService;
         this.movementService = movementService;
         this.authService = authService;
+        this.eventLogService = eventLogService;
     }
 
     @PostMapping("/{roomName}/light")
     public ResponseEntity<?> updateLight(
             @PathVariable String roomName,
-            @RequestParam boolean state
+            @RequestParam boolean state,
+            @RequestParam(required = false, defaultValue = "unknown") String userId
     ) {
         try {
-            // solo mqtt
+            // mqtt
             lightService.sendLightCommand(roomName, state);
             
             // respuesta inmediata (lazy)
@@ -62,11 +68,18 @@ public class RoomController {
     @PostMapping("/{roomName}/alarm")
     public ResponseEntity<?> updateAlarm(
             @PathVariable String roomName,
-            @RequestParam boolean state
+            @RequestParam boolean state,
+            @RequestParam(required = false, defaultValue = "unknown") String userId
     ) {
         try {
-            // solo mqtt
+            // mqtt
             movementService.sendAlarmCommand(roomName, state);
+            
+            // logging
+            String action = state ? "SENSOR_ON" : "SENSOR_OFF";
+            String details = String.format("{\"requestedState\":\"%s\",\"method\":\"API\",\"timestamp\":\"%s\"}", 
+                                         state ? "ON" : "OFF", java.time.LocalDateTime.now());
+            eventLogService.logUserAction(action, roomName, userId, details);
             
             // respuesta inmediata (lazy)
             return ResponseEntity.ok(Map.of(
@@ -95,10 +108,22 @@ public class RoomController {
         return roomService.getRoomByName(roomName);
     }
 
-    // TODO: solo admins pueden 
     @PostMapping("/{roomName}/remove")
-    public void removeRoom(@PathVariable String roomName) {
-        roomService.removeRoom(roomName);
+    public ResponseEntity<?> removeRoom(
+            @PathVariable String roomName,
+            @RequestParam(required = false, defaultValue = "unknown") String userId) {
+        try {
+            roomService.removeRoom(roomName);
+            
+            // LOG DE ELIMINACIÓN DE HABITACIÓN
+            String details = String.format("{\"method\":\"API\",\"timestamp\":\"%s\"}", 
+                                         java.time.LocalDateTime.now());
+            eventLogService.logUserAction("ROOM_DELETED", roomName, userId, details);
+            
+            return ResponseEntity.ok(Map.of("message", "Habitación eliminada"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PostMapping
@@ -107,7 +132,6 @@ public class RoomController {
             @RequestParam String username) {
         
         try {
-            // Verificar que el usuario sea admin
             if (!authService.isAdmin(username)) {
                 return ResponseEntity.status(403).body(Map.of(
                     "success", false,
@@ -116,6 +140,12 @@ public class RoomController {
             }
             
             Room room = roomService.createRoom(roomName);
+            
+            // logging
+            String details = String.format("{\"method\":\"API\",\"timestamp\":\"%s\"}", 
+                                         java.time.LocalDateTime.now());
+            eventLogService.logUserAction("ROOM_CREATED", roomName, username, details);
+            
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Habitacion creada exitosamente",

@@ -12,7 +12,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
+import android.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
     private val apiService = ApiService()
 
     private lateinit var createRoomButton: Button
+    private lateinit var viewEventsButton: Button
     private lateinit var logoutButton: Button
     private lateinit var userPreferences: UserPreferences
 
@@ -60,6 +61,7 @@ class MainActivity : ComponentActivity() {
     
     private fun setupAdminButtons() {
         createRoomButton = findViewById(R.id.createRoomButton)
+        viewEventsButton = findViewById(R.id.viewEventsButton)
         logoutButton = findViewById(R.id.logoutButton)
         
         // Mostrar botón crear habitación solo a admins
@@ -68,8 +70,13 @@ class MainActivity : ComponentActivity() {
             createRoomButton.setOnClickListener {
                 showCreateRoomDialog()
             }
+            viewEventsButton.visibility = View.VISIBLE
+            viewEventsButton.setOnClickListener {
+                startActivity(Intent(this, EventsActivity::class.java))
+            }
         } else {
             createRoomButton.visibility = View.GONE
+            viewEventsButton.visibility = View.GONE  
         }
         
         logoutButton.setOnClickListener {
@@ -77,15 +84,15 @@ class MainActivity : ComponentActivity() {
         }
 
     }
-    
+
     private fun showCreateRoomDialog() {
         val builder = AlertDialog.Builder(this)
         val input = EditText(this)
         input.hint = "Nombre de la habitación"
-        
+
         builder.setTitle("Crear Nueva Habitación")
         builder.setView(input)
-        
+
         builder.setPositiveButton("Crear") { _, _ ->
             val roomName = input.text.toString().trim()
             if (roomName.isNotEmpty()) {
@@ -94,11 +101,11 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this, "Por favor ingresa un nombre", Toast.LENGTH_SHORT).show()
             }
         }
-        
+
         builder.setNegativeButton("Cancelar") { dialog, _ ->
             dialog.cancel()
         }
-        
+
         builder.show()
     }
     
@@ -115,7 +122,7 @@ class MainActivity : ComponentActivity() {
                 
                 withContext(Dispatchers.Main) {
                     if (success) {
-                        Toast.makeText(this@MainActivity, "Habitación '$roomName' creada exitosamente", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, "Habitación '$roomName' creada con éxito", Toast.LENGTH_SHORT).show()
                         loadRooms()
                     } else {
                         Toast.makeText(this@MainActivity, "Error al crear la habitación", Toast.LENGTH_LONG).show()

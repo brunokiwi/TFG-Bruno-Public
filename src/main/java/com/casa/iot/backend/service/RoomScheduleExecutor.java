@@ -15,12 +15,16 @@ public class RoomScheduleExecutor {
     private final LightService lightService;
     private final MovementService movementService;
     private final RoomService roomService;
+    private final EventLogService eventLogService;
 
-    public RoomScheduleExecutor(RoomScheduleService scheduleService, LightService lightService, MovementService movementService, RoomService roomService) {
+    public RoomScheduleExecutor(RoomScheduleService scheduleService, LightService lightService, 
+                               MovementService movementService, RoomService roomService, 
+                               EventLogService eventLogService) {
         this.scheduleService = scheduleService;
         this.lightService = lightService;
         this.movementService = movementService;
         this.roomService = roomService;
+        this.eventLogService = eventLogService;
     }
 
     @Scheduled(cron = "0 * * * * *")
@@ -77,6 +81,12 @@ public class RoomScheduleExecutor {
         } else if ("alarm".equals(schedule.getType())) {
             movementService.sendAlarmCommand(roomName, targetState);
         }
+        
+        // logging
+        String action = targetState ? 
+            (schedule.getType().equals("light") ? "LIGHT_ON" : "SENSOR_ON") :
+            (schedule.getType().equals("light") ? "LIGHT_OFF" : "SENSOR_OFF");
+        eventLogService.logScheduleExecution(action, roomName, schedule.getId().toString());
     }
 
     private boolean isNowInInterval(LocalTime now, LocalTime start, LocalTime end) {

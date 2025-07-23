@@ -46,6 +46,11 @@
         <activity
             android:name=".CreateScheduleActivity"
             android:exported="false" />
+        
+        <activity
+            android:name=".EventsActivity"
+            android:exported="false"
+            android:label="Eventos del Sistema" />
 
         <service
             android:name=".MyFirebaseMessagingService"

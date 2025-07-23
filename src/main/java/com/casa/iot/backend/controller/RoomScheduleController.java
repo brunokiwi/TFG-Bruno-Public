@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.casa.iot.backend.model.Room;
 import com.casa.iot.backend.model.RoomSchedule;
+import com.casa.iot.backend.service.EventLogService;
 import com.casa.iot.backend.service.RoomScheduleService;
 import com.casa.iot.backend.service.RoomService;
 
@@ -22,10 +23,12 @@ import com.casa.iot.backend.service.RoomService;
 public class RoomScheduleController {
     private final RoomScheduleService scheduleService;
     private final RoomService roomService;
+    private final EventLogService eventLogService;
 
-    public RoomScheduleController(RoomScheduleService scheduleService, RoomService roomService) {
+    public RoomScheduleController(RoomScheduleService scheduleService, RoomService roomService, EventLogService eventLogService) {
         this.scheduleService = scheduleService;
         this.roomService = roomService;
+        this.eventLogService = eventLogService;
     }
 
     @PostMapping
@@ -36,7 +39,8 @@ public class RoomScheduleController {
             @RequestParam(required = false) String name,      // Nombre opcional del schedule
             @RequestParam(required = false) String time,      // formato "HH:mm", para puntual
             @RequestParam(required = false) String startTime, // formato "HH:mm", para intervalo
-            @RequestParam(required = false) String endTime    // formato "HH:mm", para intervalo
+            @RequestParam(required = false) String endTime,    // formato "HH:mm", para intervalo
+            @RequestParam(required = false, defaultValue = "unknown") String userId
     ) {
         Room room = roomService.getRoomByName(roomName);
         if (room == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Room not found");
@@ -54,12 +58,19 @@ public class RoomScheduleController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes especificar 'time' o 'startTime' y 'endTime'");
         }
         
-        // Establecer el nombre si se proporciona
         if (name != null && !name.trim().isEmpty()) {
             schedule.setName(name.trim());
         }
         
-        return scheduleService.createSchedule(schedule);
+        RoomSchedule savedSchedule = scheduleService.createSchedule(schedule);
+        
+        // logging
+        String scheduleType = time != null ? "PUNCTUAL" : "INTERVAL";
+        String details = String.format("{\"scheduleId\":\"%d\",\"type\":\"%s\",\"deviceType\":\"%s\",\"state\":%b,\"scheduleType\":\"%s\"}", 
+            savedSchedule.getId(), scheduleType, type, state, scheduleType);
+        eventLogService.logUserAction("SCHEDULE_CREATED", roomName, userId, details);
+        
+        return savedSchedule;
     }
 
     // Ejemplo de peticiones:
@@ -72,7 +83,15 @@ public class RoomScheduleController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteSchedule(@PathVariable Long id) {
+    public void deleteSchedule(
+            @PathVariable String roomName,
+            @PathVariable Long id,
+            @RequestParam(required = false, defaultValue = "unknown") String userId) {
+        
         scheduleService.deleteSchedule(id);
+        
+        // logging
+        String details = String.format("{\"scheduleId\":\"%d\",\"method\":\"API\"}", id);
+        eventLogService.logUserAction("SCHEDULE_DELETED", roomName, userId, details);
     }
 }

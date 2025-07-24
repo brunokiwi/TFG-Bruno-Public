@@ -316,4 +316,79 @@ class ApiService {
             emptyList()
         }
     }
+
+    fun activateVacationMode(): Boolean {
+        Log.d("ApiService", "Activando modo vacaciones")
+
+        val request = Request.Builder()
+            .url("$baseUrl/vacation-mode/activate")
+            .post(RequestBody.create(null, ""))
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    Log.d("ApiService", "Modo vacaciones activado")
+                    true
+                } else {
+                    Log.e("ApiService", "Error al activar modo vacaciones: ${response.code}")
+                    false
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ApiService", "Error al activar modo vacaciones: ${e.message}", e)
+            false
+        }
+    }
+
+    fun deactivateVacationMode(): Boolean {
+        Log.d("ApiService", "Desactivando modo vacaciones")
+
+        val request = Request.Builder()
+            .url("$baseUrl/vacation-mode/deactivate")
+            .post(RequestBody.create(null, ""))
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    Log.d("ApiService", "Modo vacaciones desactivado")
+                    true
+                } else {
+                    Log.e("ApiService", "Error al desactivar modo vacaciones: ${response.code}")
+                    false
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ApiService", "Error al desactivar modo vacaciones: ${e.message}", e)
+            false
+        }
+    }
+
+    fun getVacationModeStatus(): Boolean {
+        Log.d("ApiService", "Obteniendo estado del modo vacaciones")
+
+        val request = Request.Builder()
+            .url("$baseUrl/vacation-mode/status")
+            .get()
+            .build()
+
+        return try {
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    val jsonResponse = gson.fromJson(responseBody, JsonObject::class.java)
+                    val isActive = jsonResponse.get("active")?.asBoolean ?: false
+                    Log.d("ApiService", "Estado modo vacaciones: $isActive")
+                    isActive
+                } else {
+                    Log.e("ApiService", "Error al obtener estado modo vacaciones: ${response.code}")
+                    false
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ApiService", "Error al obtener estado modo vacaciones: ${e.message}", e)
+            false
+        }
+    }
 }

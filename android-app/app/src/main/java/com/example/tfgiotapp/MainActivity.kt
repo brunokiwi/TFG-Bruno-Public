@@ -33,13 +33,16 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var createRoomButton: Button
     private lateinit var viewEventsButton: Button
+    private lateinit var vacationModeButton: Button
     private lateinit var logoutButton: Button
     private lateinit var userPreferences: UserPreferences
+    private lateinit var vacationModeManager: VacationModeManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
         userPreferences = UserPreferences(this)
+        vacationModeManager = VacationModeManager(this)
         
         // Verificar autenticación
         if (!userPreferences.isLoggedIn()) {
@@ -57,32 +60,118 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermission()
         subscribeToMovementAlerts()
         checkConnectionAndLoadRooms()
+        checkVacationModeStatus()
     }
     
     private fun setupAdminButtons() {
         createRoomButton = findViewById(R.id.createRoomButton)
         viewEventsButton = findViewById(R.id.viewEventsButton)
+        vacationModeButton = findViewById(R.id.vacationModeButton)
         logoutButton = findViewById(R.id.logoutButton)
         
         // Mostrar botón crear habitación solo a admins
         if (userPreferences.isAdmin()) {
             createRoomButton.visibility = View.VISIBLE
             createRoomButton.setOnClickListener {
-                showCreateRoomDialog()
+                if (!vacationModeManager.isVacationModeActive()) {
+                    showCreateRoomDialog()
+                } else {
+                    Toast.makeText(this, "No se pueden crear habitaciones en modo vacaciones", Toast.LENGTH_SHORT).show()
+                }
             }
+
             viewEventsButton.visibility = View.VISIBLE
             viewEventsButton.setOnClickListener {
                 startActivity(Intent(this, EventsActivity::class.java))
             }
+            
+            vacationModeButton.visibility = View.VISIBLE
+            vacationModeButton.setOnClickListener {
+                toggleVacationMode()
+            }
         } else {
             createRoomButton.visibility = View.GONE
-            viewEventsButton.visibility = View.GONE  
+            viewEventsButton.visibility = View.GONE
+            vacationModeButton.visibility = View.GONE
         }
         
         logoutButton.setOnClickListener {
             logout()
         }
+    }
 
+    private fun checkVacationModeStatus() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val isActive = apiService.getVacationModeStatus()
+                withContext(Dispatchers.Main) {
+                    vacationModeManager.setVacationModeActive(isActive)
+                    updateVacationModeButton(isActive)
+                    updateUIBasedOnVacationMode(isActive)
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error al verificar estado del modo vacaciones: ${e.message}")
+            }
+        }
+    }
+
+    private fun toggleVacationMode() {
+        val isCurrentlyActive = vacationModeManager.isVacationModeActive()
+        
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val success = if (isCurrentlyActive) {
+                    apiService.deactivateVacationMode()
+                } else {
+                    apiService.activateVacationMode()
+                }
+                
+                withContext(Dispatchers.Main) {
+                    if (success) {
+                        val newState = !isCurrentlyActive
+                        vacationModeManager.setVacationModeActive(newState)
+                        updateVacationModeButton(newState)
+                        updateUIBasedOnVacationMode(newState)
+                        
+                        val message = if (newState) {
+                            "Modo vacaciones activado"
+                        } else {
+                            "Modo vacaciones desactivado"
+                        }
+                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@MainActivity, "Error al cambiar el modo vacaciones", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "Error de conexión: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun updateVacationModeButton(isActive: Boolean) {
+        if (isActive) {
+            vacationModeButton.text = "Desactivar Modo Vacaciones"
+            vacationModeButton.setBackgroundColor(getColor(android.R.color.holo_red_dark))
+        } else {
+            vacationModeButton.text = "Activar Modo Vacaciones"
+            vacationModeButton.setBackgroundColor(getColor(android.R.color.holo_blue_dark))
+        }
+    }
+
+    private fun updateUIBasedOnVacationMode(isActive: Boolean) {
+        if (isActive) {
+            createRoomButton.alpha = 0.5f
+            updateButton.alpha = 0.5f
+            updateButton.isEnabled = false
+        } else {
+            createRoomButton.alpha = 1.0f
+            viewEventsButton.alpha = 1.0f
+            updateButton.alpha = 1.0f
+            updateButton.isEnabled = true
+        }
     }
 
     private fun showCreateRoomDialog() {
@@ -138,6 +227,7 @@ class MainActivity : ComponentActivity() {
     
     private fun logout() {
         userPreferences.logout()
+        vacationModeManager.clear()
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
     }
@@ -145,6 +235,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         loadRooms()
+        checkVacationModeStatus()
     }
 
     private fun setupRecyclerView() {
@@ -160,7 +251,11 @@ class MainActivity : ComponentActivity() {
     private fun setupUpdateButton() {
         updateButton = findViewById(R.id.updateButton)
         updateButton.setOnClickListener {
-            loadRooms()
+            if (!vacationModeManager.isVacationModeActive()) {
+                loadRooms()
+            } else {
+                Toast.makeText(this, "No se pueden actualizar datos en modo vacaciones", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -173,7 +268,7 @@ class MainActivity : ComponentActivity() {
                     if (isConnected) {
                         Toast.makeText(
                             this@MainActivity,
-                            "✅ Conectado al servidor correctamente",
+                            "Conectado al servidor correctamente",
                             Toast.LENGTH_LONG
                         ).show()
 
@@ -181,7 +276,7 @@ class MainActivity : ComponentActivity() {
                     } else {
                         Toast.makeText(
                             this@MainActivity,
-                            "❌ Error: No se pudo conectar al servidor",
+                            "Error: No se pudo conectar al servidor",
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -217,9 +312,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun openRoomDetail(room: Room) {
-        val intent = Intent(this, RoomDetailActivity::class.java)
-        intent.putExtra("roomName", room.name)
-        startActivity(intent)
+        if (!vacationModeManager.isVacationModeActive()) {
+            val intent = Intent(this, RoomDetailActivity::class.java)
+            intent.putExtra("roomName", room.name)
+            startActivity(intent)
+        } else {
+            Toast.makeText(this, "No se pueden modificar habitaciones en modo vacaciones", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun requestNotificationPermission() {

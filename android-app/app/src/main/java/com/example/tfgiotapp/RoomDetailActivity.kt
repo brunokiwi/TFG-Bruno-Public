@@ -127,7 +127,7 @@ class RoomDetailActivity : ComponentActivity() {
                     if (success) {
                         // MENSAJE ACTUALIZADO para reflejar el nuevo flujo
                         Toast.makeText(this@RoomDetailActivity, 
-                            "Comando enviado - esperando confirmación del dispositivo", 
+                            "Comando enviado",
                             Toast.LENGTH_SHORT).show()
                     } else {
                         // Revertir el switch si falla el envío
@@ -162,7 +162,7 @@ class RoomDetailActivity : ComponentActivity() {
                     if (success) {
                         // MENSAJE ACTUALIZADO
                         Toast.makeText(this@RoomDetailActivity, 
-                            "Comando enviado - esperando confirmación del sensor", 
+                            "Comando enviado",
                             Toast.LENGTH_SHORT).show()
                     } else {
                         detectSwitch.setOnCheckedChangeListener(null)

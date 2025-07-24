@@ -33,10 +33,10 @@ public class RoomScheduleService {
     }
 
     public List<RoomSchedule> getPunctualSchedulesForTime(LocalTime time) {
-        return scheduleRepository.findByScheduleTypeAndTimeHourAndTimeMinute("punctual", time.getHour(), time.getMinute());
+        return scheduleRepository.findByScheduleTypeAndTimeHourAndTimeMinute("puntual", time.getHour(), time.getMinute());
     }
 
     public List<RoomSchedule> getAllIntervalSchedules() {
-        return scheduleRepository.findByScheduleType("interval");
+        return scheduleRepository.findByScheduleType("intervalo");
     }
 }

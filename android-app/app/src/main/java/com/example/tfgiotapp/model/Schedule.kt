@@ -4,6 +4,7 @@ data class Schedule(
     val id: Long,
     val name: String?,
     val type: String,
+    val scheduleType: String?,
     val state: Boolean,
     val time: String?,
     val startTime: String?,

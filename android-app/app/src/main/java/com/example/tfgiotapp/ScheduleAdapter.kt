@@ -30,6 +30,21 @@ class ScheduleAdapter(
         
         holder.scheduleName.text = schedule.name ?: "ID: ${schedule.id}"
         
+        // Información del dispositivo
+        val deviceText = when (schedule.type) {
+            "light" -> "Luz"
+            "alarm" -> "Sensor"
+            else -> schedule.type
+        }
+        
+        // Información del tipo de horario
+        val scheduleTypeText = when (schedule.scheduleType) {
+            "puntual" -> "Puntual"
+            "interval" -> "Intervalo"
+            else -> "Desconocido"
+        }
+        
+        // Información de tiempo
         val timeInfo = when {
             schedule.time != null -> "Hora: ${schedule.time}"
             schedule.startTime != null && schedule.endTime != null -> 
@@ -38,7 +53,8 @@ class ScheduleAdapter(
         }
         
         val stateText = if (schedule.state) "ON" else "OFF"
-        holder.scheduleDetails.text = "Tipo: ${schedule.type} | Estado: $stateText | $timeInfo"
+        
+        holder.scheduleDetails.text = "Dispositivo: $deviceText | Tipo: $scheduleTypeText | Estado: $stateText | $timeInfo"
         
         holder.deleteButton.setOnClickListener {
             onDeleteClick(schedule)

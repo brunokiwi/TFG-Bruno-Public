@@ -51,9 +51,7 @@ public class RoomScheduleController {
             schedule = new RoomSchedule(room, type, state, java.time.LocalTime.parse(time));
         } else if (startTime != null && endTime != null) {
             // accion en intervalo, solo puede ser true (es decir, encender)
-            schedule = new RoomSchedule(room, type, true, null);
-            schedule.setStartTime(java.time.LocalTime.parse(startTime));
-            schedule.setEndTime(java.time.LocalTime.parse(endTime));
+            schedule = new RoomSchedule(room, type, true, java.time.LocalTime.parse(startTime), java.time.LocalTime.parse(endTime));
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debes especificar 'time' o 'startTime' y 'endTime'");
         }

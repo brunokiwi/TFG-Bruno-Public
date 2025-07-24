@@ -108,6 +108,61 @@ public class AuthController {
         ));
     }
     
+    @PostMapping("/delete-user")
+    public ResponseEntity<Map<String, Object>> deleteUser(
+            @RequestBody Map<String, String> requestData,
+            HttpServletRequest request) {
+        
+        String usernameToDelete = requestData.get("usernameToDelete");
+        String adminUsername = requestData.get("adminUsername");
+        
+        try {
+            // Verificar que quien hace la petición es admin
+            if (!authService.isAdmin(adminUsername)) {
+                return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "Solo los administradores pueden eliminar usuarios"
+                ));
+            }
+            
+            // Verificar que el usuario a eliminar existe
+            if (!authService.userExists(usernameToDelete)) {
+                return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "Usuario no encontrado"
+                ));
+            }
+            
+            // Eliminar usuario
+            boolean deleted = authService.deleteUser(usernameToDelete);
+            
+            if (deleted) {
+                // logging
+                String ipAddress = getClientIpAddress(request);
+                String details = String.format("{\"deletedUser\":\"%s\",\"deletedBy\":\"%s\",\"ipAddress\":\"%s\"}", 
+                                              usernameToDelete, adminUsername, ipAddress);
+                eventLogService.logSystemAction("USER_DELETED", null, details, "ADMIN_ACTION");
+                
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Usuario eliminado exitosamente",
+                    "deletedUser", usernameToDelete
+                ));
+            } else {
+                return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Error al eliminar usuario"
+                ));
+            }
+            
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
+    
     private String getClientIpAddress(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {

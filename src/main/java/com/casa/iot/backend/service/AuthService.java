@@ -65,6 +65,24 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    public boolean deleteUser(String username) {
+        Optional<User> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isPresent()) {
+            // No permitir borrar admin por seguridad
+            if ("admin".equals(username)) {
+                throw new RuntimeException("No se puede eliminar el usuario administrador");
+            }
+            
+            userRepository.delete(userOpt.get());
+            return true;
+        }
+        return false;
+    }
+
+    public boolean userExists(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
     public boolean isAdmin(String username) {
         return userRepository.findByUsername(username)
                 .map(user -> user.getRole() == UserRole.ADMIN)

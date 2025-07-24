@@ -204,7 +204,7 @@ class ApiService {
 
     fun createPunctualSchedule(roomName: String, name: String, type: String, state: Boolean, time: String): Boolean {
         val request = Request.Builder()
-            .url("$baseUrl/rooms/$roomName/schedules?name=$name&type=$type&state=$state&time=$time")
+            .url("$baseUrl/rooms/$roomName/schedules?name=$name&type=$type&state=$state&time=$time&scheduleType=punctual")
             .post(RequestBody.create(null, ""))
             .build()
 
@@ -220,7 +220,7 @@ class ApiService {
 
     fun createIntervalSchedule(roomName: String, name: String, type: String, startTime: String, endTime: String): Boolean {
         val request = Request.Builder()
-            .url("$baseUrl/rooms/$roomName/schedules?name=$name&type=$type&state=true&startTime=$startTime&endTime=$endTime")
+            .url("$baseUrl/rooms/$roomName/schedules?name=$name&type=$type&state=true&startTime=$startTime&endTime=$endTime&scheduleType=interval")
             .post(RequestBody.create(null, ""))
             .build()
 

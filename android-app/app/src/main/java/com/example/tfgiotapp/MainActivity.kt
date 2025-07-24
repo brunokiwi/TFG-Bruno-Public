@@ -37,12 +37,14 @@ class MainActivity : ComponentActivity() {
     private lateinit var logoutButton: Button
     private lateinit var userPreferences: UserPreferences
     private lateinit var vacationModeManager: VacationModeManager
+    private lateinit var serverPreferences: ServerPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
         userPreferences = UserPreferences(this)
         vacationModeManager = VacationModeManager(this)
+        serverPreferences = ServerPreferences(this)
         
         // Verificar autenticación
         if (!userPreferences.isLoggedIn()) {
@@ -50,6 +52,9 @@ class MainActivity : ComponentActivity() {
             finish()
             return
         }
+        
+        // Configurar IP guardada en ApiService
+        setupApiService()
         
         setContentView(R.layout.mainlayout)
 
@@ -61,6 +66,11 @@ class MainActivity : ComponentActivity() {
         subscribeToMovementAlerts()
         checkConnectionAndLoadRooms()
         checkVacationModeStatus()
+    }
+    
+    private fun setupApiService() {
+        val savedIp = serverPreferences.getServerIp()
+        apiService.setServerIp(savedIp)
     }
     
     private fun setupAdminButtons() {

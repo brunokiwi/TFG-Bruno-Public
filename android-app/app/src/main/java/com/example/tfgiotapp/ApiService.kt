@@ -19,8 +19,8 @@ class ApiService {
     private val client: OkHttpClient
     private val gson = Gson()
 
-    // Cambiar IP según tu configuración
-    private val baseUrl = "http://192.168.1.57:8080"
+    // IP dinamica en lugar de hardcodeada
+    private var baseUrl = "http://192.168.1.57:8080" // IP por defecto
 
     init {
         val logging = HttpLoggingInterceptor()
@@ -29,6 +29,34 @@ class ApiService {
         client = OkHttpClient.Builder()
             .addInterceptor(logging)
             .build()
+    }
+
+    // Nuevo método para actualizar la IP del servidor
+    fun setServerIp(serverIp: String) {
+        baseUrl = if (serverIp.startsWith("http://") || serverIp.startsWith("https://")) {
+            serverIp
+        } else {
+            "http://$serverIp:8080"
+        }
+        Log.d("ApiService", "Servidor actualizado a: $baseUrl")
+    }
+
+    fun getServerUrl(): String = baseUrl
+
+    // Método para validar conectividad con la IP configurada
+    fun testConnection(): Boolean {
+        return try {
+            val request = Request.Builder()
+                .url("$baseUrl/hello")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            Log.e("ApiService", "Error probando conexión: ${e.message}")
+            false
+        }
     }
 
     fun updateLight(roomName: String, state: Boolean): Boolean {

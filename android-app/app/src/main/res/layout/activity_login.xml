@@ -14,6 +14,54 @@
         android:textStyle="bold"
         android:layout_marginBottom="32dp" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="IP del Servidor:"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <EditText
+            android:id="@+id/serverIpEdit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="192.168.1.57"
+            android:inputType="textNoSuggestions"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/testConnectionButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Probar"
+            android:layout_marginStart="8dp"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/connectionStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Estado: No probado"
+        android:textSize="12sp"
+        android:layout_marginBottom="24dp"
+        android:textColor="#666666" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Usuario:"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp" />
+
     <EditText
         android:id="@+id/usernameEdit"
         android:layout_width="match_parent"
@@ -22,13 +70,20 @@
         android:inputType="text"
         android:layout_marginBottom="16dp" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Contraseña:"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp" />
+
     <EditText
         android:id="@+id/passwordEdit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Contraseña"
+        android:hint="Ingresa tu contraseña"
         android:inputType="textPassword"
-        android:layout_marginBottom="24dp" />
+        android:layout_marginBottom="32dp" />
 
     <Button
         android:id="@+id/loginButton"

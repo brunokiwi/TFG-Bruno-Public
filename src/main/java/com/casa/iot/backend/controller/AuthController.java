@@ -117,14 +117,6 @@ public class AuthController {
         String adminUsername = requestData.get("adminUsername");
         
         try {
-            // Verificar que quien hace la petición es admin
-            if (!authService.isAdmin(adminUsername)) {
-                return ResponseEntity.status(403).body(Map.of(
-                    "success", false,
-                    "message", "Solo los administradores pueden eliminar usuarios"
-                ));
-            }
-            
             // Verificar que el usuario a eliminar existe
             if (!authService.userExists(usernameToDelete)) {
                 return ResponseEntity.status(404).body(Map.of(
@@ -133,7 +125,6 @@ public class AuthController {
                 ));
             }
             
-            // Eliminar usuario
             boolean deleted = authService.deleteUser(usernameToDelete);
             
             if (deleted) {

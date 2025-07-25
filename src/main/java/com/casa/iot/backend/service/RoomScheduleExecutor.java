@@ -27,7 +27,8 @@ public class RoomScheduleExecutor {
         this.eventLogService = eventLogService;
     }
 
-    @Scheduled(cron = "0 * * * * *")
+    // cada 59 segundos revisa horarios
+    @Scheduled(cron = "59 * * * * *")
     public void executeSchedules() {
         LocalTime now = LocalTime.now().withSecond(0).withNano(0);
 
@@ -46,15 +47,20 @@ public class RoomScheduleExecutor {
         }
     }
 
+    // Ver si estamos en el intervalo y si es necesario cambiar el estado del hardware
     private void executeIntervalSchedule(RoomSchedule schedule, LocalTime now) {
-        String roomName = schedule.getRoomName();
-        Room room = roomService.getRoomByName(roomName);
         LocalTime startTime = schedule.getStartTime();
         LocalTime endTime = schedule.getEndTime();
+        boolean shouldBeOn = isNowInInterval(now, startTime, endTime);
+        if (!shouldBeOn) {
+            return;
+        }
+        String roomName = schedule.getRoomName();
+
+        Room room = roomService.getRoomByName(roomName);
         if (room == null) return;
 
-        // Ver si estamos en el intervalo y si es necesario cambiar el estado del hardware
-        boolean shouldBeOn = isNowInInterval(now, startTime, endTime);
+       
         boolean currentState = getCurrentState(room, schedule.getType());
         
         if (currentState != shouldBeOn) { // si no esta como debe
@@ -105,10 +111,14 @@ public class RoomScheduleExecutor {
     }
 
     private boolean isNowInInterval(LocalTime now, LocalTime start, LocalTime end) {
-        if (start.isBefore(end)) {
-            return !now.isBefore(start) && now.isBefore(end);
+        LocalTime nowTrunc = now.withSecond(0).withNano(0);
+        LocalTime startTrunc = start.withSecond(0).withNano(0);
+        LocalTime endTrunc = end.withSecond(0).withNano(0);
+
+        if (startTrunc.isBefore(endTrunc) || startTrunc.equals(endTrunc)) {
+            return (!nowTrunc.isBefore(startTrunc)) && (!nowTrunc.isAfter(endTrunc));
         } else {
-            return !now.isBefore(start) || now.isBefore(end);
+            return (!nowTrunc.isBefore(startTrunc)) || (!nowTrunc.isAfter(endTrunc));
         }
     }
 }

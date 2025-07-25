@@ -3,6 +3,7 @@ import org.springframework.stereotype.Component;
 
 import com.casa.iot.backend.service.LightService;
 import com.casa.iot.backend.service.MovementService;
+import com.casa.iot.backend.service.RFIDService;
 import com.casa.iot.backend.service.SoundService;
 
 @Component
@@ -10,11 +11,14 @@ public class MqttEventHandler {
     private final LightService lightService;
     private final MovementService movementService;
     private final SoundService soundService;
+    private final RFIDService rfidService;
 
-    public MqttEventHandler(LightService lightService, MovementService movementService, SoundService soundService) {
+    public MqttEventHandler(LightService lightService, MovementService movementService, 
+                           SoundService soundService, RFIDService rfidService) {
         this.lightService = lightService;
         this.movementService = movementService;
         this.soundService = soundService;
+        this.rfidService = rfidService;
     }
 
     public void handleMessage(String topic, String payload) {
@@ -30,7 +34,7 @@ public class MqttEventHandler {
         }
         
         String room = parts[0];
-        String subsystem = parts[1]; // lig, mov, sou
+        String subsystem = parts[1]; // lig, mov, sou, rfid
         String messageType = parts[2]; // event, confirmation, command
         
         // IGNORAR comandos que nosotros mismos enviamos
@@ -55,10 +59,10 @@ public class MqttEventHandler {
                 }
                 break;
             case "sou":
-                if ("confirmation".equals(messageType)) {
-                    soundService.handleConfirmation(room, payload);
-                } else if ("event".equals(messageType)) {
-                    soundService.handle(room, payload);
+                break;
+            case "rfid":
+                if ("event".equals(messageType)) {
+                    rfidService.handle(room, payload);
                 }
                 break;
             default:

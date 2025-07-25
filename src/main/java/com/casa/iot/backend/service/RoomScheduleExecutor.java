@@ -49,19 +49,20 @@ public class RoomScheduleExecutor {
     private void executeIntervalSchedule(RoomSchedule schedule, LocalTime now) {
         String roomName = schedule.getRoomName();
         Room room = roomService.getRoomByName(roomName);
-        
+        LocalTime startTime = schedule.getStartTime();
+        LocalTime endTime = schedule.getEndTime();
         if (room == null) return;
-        
-        // Ver si estamos en el intervalo y si es necesario cambiar el estado del hardware 
-        boolean shouldBeOn = isNowInInterval(now, schedule.getStartTime(), schedule.getEndTime());
+
+        // Ver si estamos en el intervalo y si es necesario cambiar el estado del hardware
+        boolean shouldBeOn = isNowInInterval(now, startTime, endTime);
         boolean currentState = getCurrentState(room, schedule.getType());
         
         if (currentState != shouldBeOn) { // si no esta como debe
             execute(schedule, shouldBeOn);
         }
 
-        // apagar al final del intervalo 
-        if (now.getHour() == schedule.getEndTime().getHour() && now.getMinute() == schedule.getEndTime().getMinute()) {
+        // apagar al final del intervalo
+        if (now.getHour() == endTime.getHour() && now.getMinute() == endTime.getMinute()) {
             // hay otro activo?
             boolean otherActive = scheduleService.getAllIntervalSchedules().stream()
                 .filter(s -> !s.getId().equals(schedule.getId()))

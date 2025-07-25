@@ -59,6 +59,20 @@ public class RoomScheduleExecutor {
         if (currentState != shouldBeOn) { // si no esta como debe
             execute(schedule, shouldBeOn);
         }
+
+        // apagar al final del intervalo 
+        if (now.getHour() == schedule.getEndTime().getHour() && now.getMinute() == schedule.getEndTime().getMinute()) {
+            // hay otro activo?
+            boolean otherActive = scheduleService.getAllIntervalSchedules().stream()
+                .filter(s -> !s.getId().equals(schedule.getId()))
+                .filter(s -> s.getRoomName().equals(roomName))
+                .filter(s -> s.getType().equals(schedule.getType()))
+                .anyMatch(s -> isNowInInterval(now, s.getStartTime(), s.getEndTime()));
+
+            if (!otherActive) {
+                execute(schedule, false);
+            }
+        }
     }
 
     private boolean getCurrentState(Room room, String type) {

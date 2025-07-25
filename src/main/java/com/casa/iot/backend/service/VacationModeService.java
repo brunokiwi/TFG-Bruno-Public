@@ -40,6 +40,12 @@ public class VacationModeService {
     public void deactivateVacationMode() {
         vacationModeActive.set(false);
         roomNamesCache.clear();  // limpiar cache
+
+        // apagar sensores
+        List<Room> rooms = roomRepository.findAll();
+        for (Room room : rooms) {
+            movementService.sendAlarmCommand(room.getName(), false);
+        }
     }
     
     public boolean isVacationModeActive() {

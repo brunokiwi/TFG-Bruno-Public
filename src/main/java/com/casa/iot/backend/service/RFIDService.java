@@ -1,6 +1,5 @@
 package com.casa.iot.backend.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.casa.iot.backend.mqtt.MqttGateway;
@@ -18,9 +17,6 @@ public class RFIDService {
     private final VacationModeService vacationModeService;
     private final MqttGateway mqttGateway;
     private String pendingRegistrationUser = null;
-
-    @Autowired
-    private NotificationService notificationService;
 
     public RFIDService(MovementService movementService, RoomRepository roomRepository, EventLogService eventLogService, VacationModeService vacationModeService, UserRepository userRepository, MqttGateway mqttGateway) {
         this.movementService = movementService;

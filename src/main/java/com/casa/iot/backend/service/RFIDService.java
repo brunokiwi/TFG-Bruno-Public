@@ -57,6 +57,7 @@ public class RFIDService {
 
     public void startRfidRegistration(String username) {
         pendingRegistrationUser = username;
+        removeRfidFromUser(username); 
         mqttGateway.sendToMqtt("", "rfid/command/START");
         System.out.println("Comando rfid/command/START enviado para iniciar registro RFID para usuario: " + username);
     }
@@ -110,4 +111,19 @@ public class RFIDService {
 
         System.out.println("Todos los sensores de movimiento desactivados por RFID: " + cardId);
     }
+
+    public boolean removeRfidFromUser(String username) {
+    var userOpt = userRepository.findByUsername(username);
+    if (userOpt.isPresent()) {
+        var user = userOpt.get();
+        user.setRfidUid(null);
+        userRepository.save(user);
+        // logging
+        String details = String.format("{\"username\":\"%s\",\"action\":\"REMOVE_RFID\",\"timestamp\":\"%s\"}",
+                username, java.time.LocalDateTime.now());
+        eventLogService.logSystemAction("RFID_REMOVED", null, details, "RFID");
+        return true;
+    }
+    return false;
+}
 }

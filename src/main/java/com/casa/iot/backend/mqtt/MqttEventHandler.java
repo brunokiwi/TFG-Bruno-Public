@@ -50,9 +50,7 @@ public class MqttEventHandler {
             case "lig":
                 if ("confirmation".equals(messageType)) {
                     lightService.handleConfirmation(room, payload);
-                } else if ("event".equals(messageType)) {
-                    lightService.handle(room, payload);
-                }
+                } 
                 break;
             case "mov":
                 if ("confirmation".equals(messageType)) {

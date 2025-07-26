@@ -75,11 +75,6 @@ public class MovementService {
                     System.out.println("Movimiento detectado en " + room + " - Enviando notificacion");
                     notificationService.sendMovementAlert(room);
                 } else {
-                    // logging
-                    String details = String.format("{\"timestamp\":\"%s\",\"sensorType\":\"PIR\",\"sensorActive\":false,\"reason\":\"SENSOR_DISABLED\"}", 
-                                                  json.has("timestamp") ? json.get("timestamp").getAsString() : java.time.LocalDateTime.now());
-                    eventLogService.logSystemAction("MOVEMENT_IGNORED", room, details, "MOVEMENT_SENSOR");
-                    
                     System.out.println("Movimiento detectado en " + room + " - Sensor desactivado, no se envia notificacion");
                 }
                 

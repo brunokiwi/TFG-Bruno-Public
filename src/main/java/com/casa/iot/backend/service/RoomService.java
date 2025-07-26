@@ -35,7 +35,7 @@ public class RoomService {
         Room room = roomRepository.findById(roomName).orElse(null);
         if (room != null) {
             roomRepository.delete(room);
-            mqttGateway.sendToMqtt("REMOVE", roomName); // Notify IoT system about the removal <- tiene el mqtt algun tipo de memoria?
+            mqttGateway.sendToMqtt(roomName + "/remove");
         }
     }
 }

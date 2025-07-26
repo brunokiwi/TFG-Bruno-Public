@@ -20,10 +20,8 @@ public class LightService {
     }
 
     public void sendLightCommand(String roomName, boolean lightOn) {
-        // enviar comando mqtt
-        String payload = String.format("{\"command\":\"SET_LIGHT\",\"state\":\"%s\"}", 
-                                     lightOn ? "ON" : "OFF");
-        mqttGateway.sendToMqtt(payload, roomName + "/lig/command");
+        String topic = roomName + "/light/command/" + (lightOn ? "ON" : "OFF");
+        mqttGateway.sendToMqtt(topic);
     }
 
     // una vez recibimos respuesta positiva, actualizamos BD

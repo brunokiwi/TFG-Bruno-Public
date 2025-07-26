@@ -12,11 +12,11 @@ import com.casa.iot.backend.repository.RoomRepository;
 public class RoomService {
 
     private final RoomRepository roomRepository;
-    private final MqttGateway mqttGateway; // to send messages to iOT
+    // private final MqttGateway mqttGateway; // to send messages to iOT
 
     public RoomService(RoomRepository repo, MqttGateway gateway) {
         this.roomRepository = repo;
-        this.mqttGateway = gateway;
+        // this.mqttGateway = gateway;
     }
 
     public List<Room> getAllRooms() {

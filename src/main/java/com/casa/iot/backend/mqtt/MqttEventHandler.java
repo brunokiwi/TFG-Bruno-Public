@@ -10,14 +10,14 @@ import com.casa.iot.backend.service.SoundService;
 public class MqttEventHandler {
     private final LightService lightService;
     private final MovementService movementService;
-    private final SoundService soundService;
+    // private final SoundService soundService;
     private final RFIDService rfidService;
 
     public MqttEventHandler(LightService lightService, MovementService movementService, 
                            SoundService soundService, RFIDService rfidService) {
         this.lightService = lightService;
         this.movementService = movementService;
-        this.soundService = soundService;
+        // this.soundService = soundService;
         this.rfidService = rfidService;
     }
 

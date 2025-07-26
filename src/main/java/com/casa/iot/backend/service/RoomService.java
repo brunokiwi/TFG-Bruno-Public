@@ -35,7 +35,7 @@ public class RoomService {
         Room room = roomRepository.findById(roomName).orElse(null);
         if (room != null) {
             roomRepository.delete(room);
-            mqttGateway.sendToMqtt(roomName + "/remove");
+            mqttGateway.sendToMqtt("", roomName + "/remove");
         }
     }
 }

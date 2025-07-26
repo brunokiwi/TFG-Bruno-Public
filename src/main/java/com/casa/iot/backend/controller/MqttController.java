@@ -20,7 +20,7 @@ public class MqttController {
 		
 		try {
 		JsonObject convertObject = new Gson().fromJson(mqttMessage, JsonObject.class);
-		mqtGateway.sendToMqtt(convertObject.get("message").toString(), convertObject.get("topic").toString());
+		mqtGateway.sendToMqtt(convertObject.get("payload").toString(),convertObject.get("topic").toString());
 		return ResponseEntity.ok("Success");
 		}catch(Exception ex) {
 			ex.printStackTrace();

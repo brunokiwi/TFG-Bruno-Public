@@ -33,6 +33,15 @@
         android:backgroundTint="#4CAF50" />
 
     <Button
+        android:id="@+id/rfidButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tarjeta RFID"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        android:backgroundTint="#E3BE65FD" />
+        
+    <Button
         android:id="@+id/viewEventsButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

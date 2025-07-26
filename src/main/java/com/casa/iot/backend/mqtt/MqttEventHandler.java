@@ -25,16 +25,19 @@ public class MqttEventHandler {
         System.out.println("MQTT recibido - Topic: " + topic + ", Payload: " + payload);
         
         String[] parts = topic.split("/");
+        String room = parts[0];
+        if (room.equals("rfid")){
+            handleRFID(parts, payload);
+            return;
+        }
+
         if (parts.length < 3) {
-            if (parts.length >= 2) {
-                String room = parts[0];
+            if (parts.length >= 2) 
                 movementService.handle(room, payload);
-            }
             return;
         }
         
-        String room = parts[0];
-        String subsystem = parts[1]; // lig, mov, sou, rfid
+        String subsystem = parts[1]; // lig, mov, sou
         String messageType = parts[2]; // event, confirmation, command
         
         // IGNORAR comandos que nosotros mismos enviamos
@@ -60,13 +63,24 @@ public class MqttEventHandler {
                 break;
             case "sou":
                 break;
-            case "rfid":
-                if ("event".equals(messageType)) {
-                    rfidService.handle(room, payload);
-                }
-                break;
             default:
                 System.out.println("Subsistema no reconocido: " + subsystem);
+        }
+    }
+    
+    private void handleRFID(String[] parts, String payload) {
+        String subsystem = parts[1];
+        switch (subsystem) {
+            case "event":
+                rfidService.handle(payload);
+                break;
+            case "register":
+                System.out.println("Iniciando registro RFID para usuario: " + payload);
+                rfidService.handleRegister(payload);
+                break;
+            case "command":
+                System.out.println("Ignorando comando saliente de rfid");
+                break;
         }
     }
 }

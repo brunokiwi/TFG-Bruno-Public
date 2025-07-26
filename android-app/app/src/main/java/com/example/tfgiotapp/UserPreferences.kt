@@ -12,6 +12,7 @@ class UserPreferences(context: Context) {
             putLong("user_id", user.id)
             putString("username", user.username)
             putString("role", user.role)
+            putString("rfidUid", user.rfidUid)
             putBoolean("is_logged_in", true)
             apply()
         }
@@ -22,7 +23,8 @@ class UserPreferences(context: Context) {
             com.example.tfgiotapp.model.User(
                 id = prefs.getLong("user_id", -1),
                 username = prefs.getString("username", "") ?: "",
-                role = prefs.getString("role", "") ?: ""
+                role = prefs.getString("role", "") ?: "",
+                rfidUid = prefs.getString("rfidUid", null)
             )
         } else null
     }

@@ -130,6 +130,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkVacationModeStatus() {
+        val serverPreferences = ServerPreferences(this)
+        val savedIp = serverPreferences.getServerIp()
+        apiService.setServerIp(savedIp)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val isActive = apiService.getVacationModeStatus()

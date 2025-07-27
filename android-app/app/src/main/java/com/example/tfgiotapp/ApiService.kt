@@ -21,7 +21,7 @@ class ApiService {
     private val client: OkHttpClient
     private val gson = Gson()
 
-    private var baseUrl = "http://192.168.1.57:8080" 
+    private var baseUrl = ""
 
     init {
         val logging = HttpLoggingInterceptor()

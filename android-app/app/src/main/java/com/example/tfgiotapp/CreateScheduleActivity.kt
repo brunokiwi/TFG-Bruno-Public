@@ -115,6 +115,9 @@ class CreateScheduleActivity : ComponentActivity() {
     }
 
     private fun createPunctualSchedule(name: String, type: String, state: Boolean, time: String) {
+        val serverPreferences = ServerPreferences(this)
+        val savedIp = serverPreferences.getServerIp()
+        apiService.setServerIp(savedIp)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val success = apiService.createPunctualSchedule(roomName, name, type, state, time)
@@ -135,6 +138,9 @@ class CreateScheduleActivity : ComponentActivity() {
     }
 
     private fun createIntervalSchedule(name: String, type: String, startTime: String, endTime: String) {
+        val serverPreferences = ServerPreferences(this)
+        val savedIp = serverPreferences.getServerIp()
+        apiService.setServerIp(savedIp)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val success = apiService.createIntervalSchedule(roomName, name, type, startTime, endTime)

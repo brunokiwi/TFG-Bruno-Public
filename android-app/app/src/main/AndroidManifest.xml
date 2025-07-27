@@ -19,7 +19,6 @@
         <activity
             android:name=".LoginActivity"
             android:exported="true"
-            android:label="Iniciar Sesion"
             android:theme="@style/Theme.TFGiOtAPP">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,13 +29,11 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:label="IoT Home System"
             android:theme="@style/Theme.TFGiOtAPP" />
 
         <activity
             android:name=".RoomDetailActivity"
             android:exported="false"
-            android:label="Detalle de Habitación"
             android:theme="@style/Theme.TFGiOtAPP" />
 
         <activity

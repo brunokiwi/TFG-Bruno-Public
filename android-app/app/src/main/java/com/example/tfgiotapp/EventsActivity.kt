@@ -45,6 +45,9 @@ class EventsActivity : ComponentActivity() {
     }
 
     private fun loadEvents() {
+        val serverPreferences = ServerPreferences(this)
+        val savedIp = serverPreferences.getServerIp()
+        apiService.setServerIp(savedIp)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val events = apiService.getAllEvents()

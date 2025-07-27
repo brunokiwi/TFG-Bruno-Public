@@ -60,6 +60,9 @@ class ManageSchedulesActivity : ComponentActivity() {
     }
 
     private fun loadSchedules() {
+        val serverPreferences = ServerPreferences(this)
+        val savedIp = serverPreferences.getServerIp()
+        apiService.setServerIp(savedIp)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val schedules = apiService.getRoomSchedules(roomName)
@@ -75,6 +78,9 @@ class ManageSchedulesActivity : ComponentActivity() {
     }
 
     private fun deleteSchedule(schedule: Schedule) {
+        val serverPreferences = ServerPreferences(this)
+        val savedIp = serverPreferences.getServerIp()
+        apiService.setServerIp(savedIp)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val success = apiService.deleteSchedule(roomName, schedule.id)

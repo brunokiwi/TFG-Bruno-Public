@@ -53,6 +53,9 @@ class RoomDetailActivity : ComponentActivity() {
     }
 
     private fun loadRoomDetail(roomName: String) {
+        val serverPreferences = ServerPreferences(this)
+        val savedIp = serverPreferences.getServerIp()
+        apiService.setServerIp(savedIp)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val room = apiService.getRoomByName(roomName)

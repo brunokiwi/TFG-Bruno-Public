@@ -39,7 +39,6 @@ class RoomScheduleControllerTest {
 
     @Test
     void testCreateAndGetSchedule() throws Exception {
-        // Crear programación puntual
         mockMvc.perform(post("/rooms/salon/schedules")
                 .param("type", "light")
                 .param("state", "true")
@@ -49,7 +48,6 @@ class RoomScheduleControllerTest {
                 .andExpect(jsonPath("$.state").value(true))
                 .andExpect(jsonPath("$.time").value("20:00:00"));
 
-        // Consultar programaciones
         mockMvc.perform(get("/rooms/salon/schedules"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -71,17 +69,14 @@ class RoomScheduleControllerTest {
 
     @Test
     void testDeleteSchedule() throws Exception {
-        // Crear programación
         mockMvc.perform(post("/rooms/salon/schedules")
                 .param("type", "light")
                 .param("state", "true")
                 .param("time", "21:00"))
                 .andExpect(status().isOk());
 
-        // Extraer el id (puedes usar una librería JSON para parsear si lo necesitas)
         Long id = scheduleRepository.findAll().get(0).getId();
 
-        // Eliminar programación
         mockMvc.perform(delete("/rooms/salon/schedules/" + id))
                 .andExpect(status().isOk());
     }

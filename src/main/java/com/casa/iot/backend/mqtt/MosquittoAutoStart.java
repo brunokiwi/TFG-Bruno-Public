@@ -137,8 +137,8 @@ public class MosquittoAutoStart {
             }
             
             try {
-                String mosquittoPath = "C:\\Program Files\\mosquitto\\mosquitto.exe";
-                String configPath = "C:\\Program Files\\mosquitto\\mosquitto.conf";
+                String mosquittoPath = "src\\mosquitto\\mosquitto-2.0.22\\mosquitto.exe";
+                String configPath = "src\\mosquitto\\mosquitto-2.0.22\\mosquitto.conf";
                 
                 ProcessBuilder pb = new ProcessBuilder(mosquittoPath, "-c", configPath, "-v");
                 mosquittoProcess = pb.start();

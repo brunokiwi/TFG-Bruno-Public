@@ -3,15 +3,15 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <ArduinoJson.h>
+#include <WiFiManager.h> 
+#include <Preferences.h>
 
-// Configuración WiFi
-const char* ssid = "MiFibra-FCF4";
-const char* password = "LyHS5NJ6";
+// MQTT config variables (no const, porque se configuran en runtime)
+char mqtt_server[40] = "192.168.1.57";
+char mqtt_port[6] = "1883";
+char mqtt_client_id[32] = "ESP32_IoT_Device";
 
-// Configuración MQTT
-const char* mqtt_server = "192.168.1.57";
-const int mqtt_port = 1883;
-const char* mqtt_client_id = "ESP32_IoT_Device";
+Preferences preferences;
 
 // Pines del hardware
 const int LED_SALON = 2;    // amarillo
@@ -67,16 +67,52 @@ void setup() {
   digitalWrite(LED_CUARTO, LOW);
   digitalWrite(BUZZER_CUARTO, LOW);
 
-  // WiFi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500); Serial.print(".");
+  // cargar config guardada
+  preferences.begin("mqtt", false);
+  if (preferences.isKey("server")) {
+    preferences.getString("server", mqtt_server, sizeof(mqtt_server));
+    preferences.getString("port", mqtt_port, sizeof(mqtt_port));
+    preferences.getString("client", mqtt_client_id, sizeof(mqtt_client_id));
+    Serial.println("Parámetros MQTT cargados de la flash.");
   }
-  Serial.println("\nWiFi conectado");
+
+  // wifimanager setup
+  WiFiManager wm;
+  // wm.resetSettings(); <- descomenta para probar flash
+  // delay(1000);
+  WiFiManagerParameter custom_mqtt_server("server", "MQTT Broker", mqtt_server, 40);
+  WiFiManagerParameter custom_mqtt_port("port", "MQTT Port", mqtt_port, 6);
+  WiFiManagerParameter custom_mqtt_client("client", "MQTT Client ID", mqtt_client_id, 32);
+
+  wm.addParameter(&custom_mqtt_server);
+  wm.addParameter(&custom_mqtt_port);
+  wm.addParameter(&custom_mqtt_client);
+
+  // Portal cautivo para configurar WiFi y MQTT si es necesario
+  if (!wm.autoConnect("CasaIoT-Setup")) {
+    Serial.println("Fallo al conectar y timeout");
+    ESP.restart();
+    delay(1000);
+  }
+
+  // Guardar los parámetros introducidos
+  strcpy(mqtt_server, custom_mqtt_server.getValue());
+  strcpy(mqtt_port, custom_mqtt_port.getValue());
+  strcpy(mqtt_client_id, custom_mqtt_client.getValue());
+
+  // Guardar en la flash
+  preferences.putString("server", mqtt_server);
+  preferences.putString("port", mqtt_port);
+  preferences.putString("client", mqtt_client_id);
+
+  Serial.println("WiFi conectado");
   Serial.print("IP: "); Serial.println(WiFi.localIP());
+  Serial.print("MQTT Broker: "); Serial.println(mqtt_server);
+  Serial.print("MQTT Port: "); Serial.println(mqtt_port);
+  Serial.print("MQTT Client: "); Serial.println(mqtt_client_id);
 
   // MQTT
-  client.setServer(mqtt_server, mqtt_port);
+  client.setServer(mqtt_server, atoi(mqtt_port));
   client.setCallback(onMqttMessage);
 
   reconnectMqtt();

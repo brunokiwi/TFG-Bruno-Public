@@ -89,8 +89,10 @@ void loop() {
   if (!client.connected()) reconnectMqtt();
   client.loop();
 
-  // Sensores de movimiento
-  checkMovementSensors();
+  // Sensores de movimiento, si no hay encendido nos ahorramos
+  if (salonAlarmState || cuartoAlarmState){
+    checkMovementSensors();
+  }
 
   // RFID
   handleRfidLogic();

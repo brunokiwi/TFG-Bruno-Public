@@ -20,10 +20,9 @@ public class LightService {
     }
 
     public void sendLightCommand(String roomName, boolean lightOn) {
-        // enviar comando mqtt
-        String payload = String.format("{\"command\":\"SET_LIGHT\",\"state\":\"%s\"}", 
-                                     lightOn ? "ON" : "OFF");
-        mqttGateway.sendToMqtt(payload, roomName + "/lig/command");
+        String topic = roomName + "/lig/command";
+        String payload = String.format("{\"command\":\"SET_LIGHT\",\"state\":\"%s\"}", lightOn ? "ON" : "OFF");
+        mqttGateway.sendToMqtt(payload, topic);
     }
 
     // una vez recibimos respuesta positiva, actualizamos BD
@@ -47,26 +46,6 @@ public class LightService {
             }
         } catch (Exception e) {
             System.err.println("Error al procesar confirmación: " + e.getMessage());
-        }
-    }
-
-    public void handle(String room, String payload) {
-        try {
-            // cambio manual de las luces {"event":"LIGHT_CHANGED","state":"ON","source":"MANUAL"}
-            JsonObject json = JsonParser.parseString(payload).getAsJsonObject();
-            String event = json.get("event").getAsString();
-            String state = json.get("state").getAsString();
-            
-            if ("LIGHT_CHANGED".equals(event)) {
-                // bd stuf
-                Room roomEntity = roomRepository.findById(room).orElse(new Room(room));
-                roomEntity.setLightOn("ON".equals(state));
-                roomRepository.save(roomEntity);
-                
-                System.out.println("Cambio manual detectado: " + room + " -> " + state);
-            }
-        } catch (Exception e) {
-            System.err.println("Error al procesar evento: " + e.getMessage());
         }
     }
 }

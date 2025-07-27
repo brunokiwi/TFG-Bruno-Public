@@ -12,11 +12,11 @@ import com.casa.iot.backend.repository.RoomRepository;
 public class RoomService {
 
     private final RoomRepository roomRepository;
-    private final MqttGateway mqttGateway; // to send messages to iOT
+    // private final MqttGateway mqttGateway; // to send messages to iOT
 
     public RoomService(RoomRepository repo, MqttGateway gateway) {
         this.roomRepository = repo;
-        this.mqttGateway = gateway;
+        // this.mqttGateway = gateway;
     }
 
     public List<Room> getAllRooms() {
@@ -35,7 +35,7 @@ public class RoomService {
         Room room = roomRepository.findById(roomName).orElse(null);
         if (room != null) {
             roomRepository.delete(room);
-            mqttGateway.sendToMqtt("REMOVE", roomName); // Notify IoT system about the removal <- tiene el mqtt algun tipo de memoria?
+            // mqttGateway.sendToMqtt("", roomName + "/remove");
         }
     }
 }

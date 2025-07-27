@@ -33,6 +33,9 @@ public class User {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
+    @Column(name = "rfid_uid", length = 32, unique = true)
+    private String rfidUid;
+
     public User() {
         this.creationDate = LocalDateTime.now();
     }
@@ -60,4 +63,8 @@ public class User {
     
     public LocalDateTime getLastLogin() { return lastLogin; }
     public void setLastLogin(LocalDateTime lastLogin) { this.lastLogin = lastLogin; }
+
+    public String getRfidUid() { return rfidUid; }
+    public void setRfidUid(String rfidUid) { this.rfidUid = rfidUid; }
+
 }

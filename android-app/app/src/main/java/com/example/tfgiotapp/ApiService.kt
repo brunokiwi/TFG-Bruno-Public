@@ -9,18 +9,19 @@ import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.logging.HttpLoggingInterceptor
+import org.json.JSONObject
 import java.io.IOException
 
 class ApiService {
     private val client: OkHttpClient
     private val gson = Gson()
 
-    // IP dinamica en lugar de hardcodeada
-    private var baseUrl = "http://192.168.1.57:8080" // IP por defecto
+    private var baseUrl = "http://192.168.1.57:8080" 
 
     init {
         val logging = HttpLoggingInterceptor()
@@ -31,7 +32,6 @@ class ApiService {
             .build()
     }
 
-    // Nuevo método para actualizar la IP del servidor
     fun setServerIp(serverIp: String) {
         baseUrl = if (serverIp.startsWith("http://") || serverIp.startsWith("https://")) {
             serverIp
@@ -43,7 +43,6 @@ class ApiService {
 
     fun getServerUrl(): String = baseUrl
 
-    // Método para validar conectividad con la IP configurada
     fun testConnection(): Boolean {
         return try {
             val request = Request.Builder()
@@ -72,7 +71,6 @@ class ApiService {
                 Log.d("ApiService", "Respuesta comando luz: ${response.code}")
                 
                 if (response.isSuccessful) {
-                    // Parsear la nueva respuesta del backend
                     val responseBody = response.body?.string()
                     Log.d("ApiService", "Respuesta luz: $responseBody")
                     
@@ -80,12 +78,10 @@ class ApiService {
                         val jsonResponse = gson.fromJson(responseBody, JsonObject::class.java)
                         val status = jsonResponse.get("status")?.asString
                         Log.d("ApiService", "Status comando luz: $status")
-                        
-                        // Comando enviado correctamente (aunque pendiente de confirmación IoT)
                         status == "PENDING"
                     } catch (e: Exception) {
                         Log.w("ApiService", "Error parsing respuesta luz: ${e.message}")
-                        true // Asumir éxito si no se puede parsear
+                        true // asumimos exito
                     }
                 } else {
                     false
@@ -274,7 +270,6 @@ class ApiService {
                 if (response.isSuccessful) {
                     gson.fromJson(responseBody, LoginResponse::class.java)
                 } else {
-                    // Error HTTP específico (401, 403, etc.)
                     val errorResponse = try {
                         gson.fromJson(responseBody, LoginResponse::class.java)
                     } catch (e: Exception) {
@@ -418,5 +413,76 @@ class ApiService {
             Log.e("ApiService", "Error al obtener estado modo vacaciones: ${e.message}", e)
             false
         }
+    }
+
+    data class RfidRegistrationResult(val success: Boolean, val rfidUid: String?, val message: String?)
+
+    fun getRfidUid(username: String): String? {
+        val request = Request.Builder()
+            .url("$baseUrl/auth/rfid/$username")
+            .get()
+            .build()
+        return try {
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val json = JSONObject(response.body?.string() ?: "")
+                    json.optString("rfidUid", null)
+                } else null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun registerRfid(username: String, rfidUid: String): Boolean {
+        val json = JSONObject().apply {
+            put("username", username)
+            put("rfidUid", rfidUid)
+        }
+        val body = RequestBody.create(
+            "application/json".toMediaTypeOrNull(), json.toString()
+        )
+        val request = Request.Builder()
+            .url("$baseUrl/auth/rfid")
+            .post(body)
+            .build()
+        return try {
+            client.newCall(request).execute().use { it.isSuccessful }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun initiateRfidRegistration(username: String): RfidRegistrationResult {
+        val json = JSONObject().apply { put("username", username) }
+        val body = RequestBody.create("application/json".toMediaTypeOrNull(), json.toString())
+        val request = Request.Builder()
+            .url("$baseUrl/auth/rfid/register")
+            .post(body)
+            .build()
+        return try {
+            client.newCall(request).execute().use { response ->
+                val respJson = JSONObject(response.body?.string() ?: "")
+                RfidRegistrationResult(
+                    respJson.optBoolean("success", false),
+                    respJson.optString("rfidUid", null),
+                    respJson.optString("message", null)
+                )
+            }
+        } catch (e: Exception) {
+            RfidRegistrationResult(false, null, "Error de red")
+        }
+    }
+
+    fun cancelRfidRegistration(username: String) {
+        val json = JSONObject().apply { put("username", username) }
+        val body = RequestBody.create("application/json".toMediaTypeOrNull(), json.toString())
+        val request = Request.Builder()
+            .url("$baseUrl/auth/rfid/cancel")
+            .post(body)
+            .build()
+        try {
+            client.newCall(request).execute().close()
+        } catch (_: Exception) {}
     }
 }

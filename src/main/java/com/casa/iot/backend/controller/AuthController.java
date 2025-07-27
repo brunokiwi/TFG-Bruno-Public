@@ -14,6 +14,7 @@ import com.casa.iot.backend.model.User;
 import com.casa.iot.backend.model.UserRole;
 import com.casa.iot.backend.service.AuthService;
 import com.casa.iot.backend.service.EventLogService;
+import com.casa.iot.backend.service.RFIDService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -23,10 +24,12 @@ public class AuthController {
     
     private final AuthService authService;
     private final EventLogService eventLogService;
-    
-    public AuthController(AuthService authService, EventLogService eventLogService) {
+    private final RFIDService rfidService;
+
+    public AuthController(AuthService authService, EventLogService eventLogService, RFIDService rfidService ) {
         this.authService = authService;
         this.eventLogService = eventLogService;
+        this.rfidService = rfidService;
     }
 
     @PostMapping("/login")
@@ -154,6 +157,38 @@ public class AuthController {
         }
     }
     
+    @PostMapping("/rfid/register")
+    public ResponseEntity<?> initiateRfidRegistration(@RequestBody Map<String, String> data) {
+        String username = data.get("username");
+        if (username == null) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Falta el usuario"));
+        }
+        rfidService.startRfidRegistration(username);
+        return ResponseEntity.ok(Map.of("success", true, "message", "Comando de inicio de registro RFID enviado"));
+    }
+
+    @PostMapping("/rfid/cancel")
+    public ResponseEntity<?> cancelRfidRegistration(@RequestBody Map<String, String> data) {
+        String username = data.get("username");
+        if (username == null) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Falta el usuario"));
+        }
+        rfidService.cancelRfidRegistration(username);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    @GetMapping("/rfid/{username}")
+    public ResponseEntity<?> getRfidUid(@PathVariable String username) {
+        User user = authService.findByUsername(username);
+        if (user == null || user.getRfidUid() == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Usuario no encontrado"));
+        }
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "rfidUid", user.getRfidUid() // puede ser null si no tiene
+        ));
+    }
+
     private String getClientIpAddress(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {

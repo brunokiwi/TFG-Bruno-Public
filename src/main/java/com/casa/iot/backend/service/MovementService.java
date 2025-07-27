@@ -23,24 +23,19 @@ public class MovementService {
         this.eventLogService = eventLogService;
     }
 
-    // SOLO envía comando al sensor - NO actualiza BD
     public void sendAlarmCommand(String roomName, boolean alarmOn) {
-        // Enviar comando con formato JSON
-        String payload = String.format("{\"command\":\"SET_ALARM\",\"state\":\"%s\"}", 
-                                     alarmOn ? "ON" : "OFF");
-        mqttGateway.sendToMqtt(payload, roomName + "/mov/command");
+        String topic = roomName + "/mov/command";
+        String payload = String.format("{\"command\":\"SET_ALARM\",\"state\":\"%s\"}", alarmOn ? "ON" : "OFF");
+        mqttGateway.sendToMqtt(payload, topic);
     }
 
-    // Procesa confirmación del sensor y ENTONCES actualiza BD
     public void handleConfirmation(String room, String payload) {
         try {
-            // Parsear respuesta del sensor: {"status":"SUCCESS","state":"ON"}
             JsonObject json = JsonParser.parseString(payload).getAsJsonObject();
             String status = json.get("status").getAsString();
             String state = json.get("state").getAsString();
             
             if ("SUCCESS".equals(status)) {
-                // AHORA SÍ actualizamos la base de datos
                 Room roomEntity = roomRepository.findById(room).orElse(new Room(room));
                 roomEntity.setDetectOn("ON".equals(state));
                 roomRepository.save(roomEntity);
@@ -61,11 +56,9 @@ public class MovementService {
         }
     }
 
-    // Maneja eventos de detección de movimiento
     public void handle(String room, String payload) {
         try {
             System.out.println("Movimiento recibido del sensor en " + room + ": " + payload);
-            // Evento de movimiento: {"event":"MOVEMENT_DETECTED","timestamp":"2024-01-20T15:30:00"}
             JsonObject json = JsonParser.parseString(payload).getAsJsonObject();
             String event = json.get("event").getAsString();
             
@@ -83,16 +76,10 @@ public class MovementService {
                     System.out.println("Movimiento detectado en " + room + " - Enviando notificacion");
                     notificationService.sendMovementAlert(room);
                 } else {
-                    // logging
-                    String details = String.format("{\"timestamp\":\"%s\",\"sensorType\":\"PIR\",\"sensorActive\":false,\"reason\":\"SENSOR_DISABLED\"}", 
-                                                  json.has("timestamp") ? json.get("timestamp").getAsString() : java.time.LocalDateTime.now());
-                    eventLogService.logSystemAction("MOVEMENT_IGNORED", room, details, "MOVEMENT_SENSOR");
-                    
                     System.out.println("Movimiento detectado en " + room + " - Sensor desactivado, no se envia notificacion");
                 }
                 
             } else if ("ALARM_CHANGED".equals(event)) {
-                // Cambio manual del sensor (activado/desactivado físicamente)
                 String state = json.get("state").getAsString();
                 Room roomEntity = roomRepository.findById(room).orElse(new Room(room));
                 roomEntity.setDetectOn("ON".equals(state));

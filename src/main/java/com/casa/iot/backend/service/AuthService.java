@@ -88,4 +88,12 @@ public class AuthService {
                 .map(user -> user.getRole() == UserRole.ADMIN)
                 .orElse(false);
     }
+
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
+    }
+
+    public void save(User user) {
+        userRepository.save(user);
+    }
 }

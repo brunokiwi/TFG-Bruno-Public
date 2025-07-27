@@ -24,8 +24,9 @@ public class MovementService {
     }
 
     public void sendAlarmCommand(String roomName, boolean alarmOn) {
-        String topic = roomName + "/alarm/command/" + (alarmOn ? "ON" : "OFF");
-        mqttGateway.sendToMqtt("", topic);
+        String topic = roomName + "/mov/command";
+        String payload = String.format("{\"command\":\"SET_ALARM\",\"state\":\"%s\"}", alarmOn ? "ON" : "OFF");
+        mqttGateway.sendToMqtt(payload, topic);
     }
 
     public void handleConfirmation(String room, String payload) {

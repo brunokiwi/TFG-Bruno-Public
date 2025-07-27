@@ -54,13 +54,15 @@ public class RFIDService {
     public void startRfidRegistration(String username) {
         pendingRegistrationUser = username;
         removeRfidFromUser(username); 
-        mqttGateway.sendToMqtt("", "rfid/command/START");
-        System.out.println("Comando rfid/command/START enviado para iniciar registro RFID para usuario: " + username);
+        String payload = "{\"command\":\"START\"}";
+        mqttGateway.sendToMqtt(payload, "rfid/command");
+        System.out.println("Comando rfid/command enviado para iniciar registro RFID para usuario: " + username);
     }
 
     public void cancelRfidRegistration(String username) {
         pendingRegistrationUser = null;
-        mqttGateway.sendToMqtt("", "rfid/command/CANCEL");
+        String payload = "{\"command\":\"CANCEL\"}";
+        mqttGateway.sendToMqtt(payload, "rfid/command");
     }
 
     public void handleRegister(String payload) {

@@ -485,4 +485,18 @@ class ApiService {
             client.newCall(request).execute().close()
         } catch (_: Exception) {}
     }
+
+    fun deleteRoom(roomName: String, username: String): Boolean {
+        val request = Request.Builder()
+            .url("$baseUrl/rooms/$roomName/remove?userId=$username")
+            .post(RequestBody.create(null, ""))
+            .build()
+        return try {
+            client.newCall(request).execute().use { response ->
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

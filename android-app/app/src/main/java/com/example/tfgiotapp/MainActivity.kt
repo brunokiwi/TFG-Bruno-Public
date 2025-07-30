@@ -49,6 +49,8 @@ class MainActivity : ComponentActivity() {
     private var rfidRegistrationInProgress = false
     private var rfidRegistrationJob: Job? = null
 
+    private var globalToast: Toast? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -192,14 +194,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun updateUIBasedOnVacationMode(isActive: Boolean) {
-        // Deshabilita botones si es necesario (puedes ajustar según tus necesidades)
         updateButton.alpha = if (isActive) 0.5f else 1.0f
         updateButton.isEnabled = !isActive
 
-        // Muestra el aviso de modo vacaciones
         vacationModeLabel.visibility = if (isActive) View.VISIBLE else View.GONE
 
-        // Cambia el color de las cards de habitaciones
         roomAdapter.setVacationModeActive(isActive)
     }
 
@@ -279,12 +278,20 @@ class MainActivity : ComponentActivity() {
         checkVacationModeStatus()
     }
 
+    private fun showSingleToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
+        globalToast?.cancel()
+        globalToast = Toast.makeText(this, message, duration)
+        globalToast?.show()
+    }
+
     private fun setupRecyclerView() {
         recyclerView = findViewById(R.id.recyclerViewRooms)
-        roomAdapter = RoomAdapter(emptyList()) { room ->
-            openRoomDetail(room)
-        }
-
+        roomAdapter = RoomAdapter(
+            emptyList(),
+            { room -> openRoomDetail(room) },
+            { room -> confirmDeleteRoom(room) },
+            userPreferences.isAdmin()
+        )
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = roomAdapter
     }
@@ -460,5 +467,41 @@ class MainActivity : ComponentActivity() {
             apiService.cancelRfidRegistration(username)
         }
         rfidRegistrationInProgress = false
+    }
+
+    private fun confirmDeleteRoom(room: Room) {
+        AlertDialog.Builder(this)
+            .setTitle("Eliminar habitación")
+            .setMessage("¿Seguro que quieres eliminar la habitación '${room.name}'?")
+            .setPositiveButton("Eliminar") { _, _ ->
+                deleteRoom(room)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun deleteRoom(room: Room) {
+        val currentUser = userPreferences.getCurrentUser()
+        if (currentUser == null) {
+            showSingleToast("Error: Usuario no autenticado")
+            return
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val success = apiService.deleteRoom(room.name, currentUser.username)
+                withContext(Dispatchers.Main) {
+                    if (success) {
+                        showSingleToast("Habitación eliminada")
+                        loadRooms()
+                    } else {
+                        showSingleToast("Error al eliminar la habitación")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showSingleToast("Error de conexión: ${e.message}")
+                }
+            }
+        }
     }
 }

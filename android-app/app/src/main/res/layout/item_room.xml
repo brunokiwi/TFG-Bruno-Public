@@ -28,7 +28,17 @@
             android:layout_height="wrap_content"
             android:text="Luz: ON | Sensor: OFF"
             android:textSize="16sp"
-            android:textColor="#2C2C2C"/>
+            android:textColor="#666"
+            android:layout_marginBottom="8dp"/>
 
+        <Button
+            android:id="@+id/deleteRoomButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Eliminar"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#DD298C"
+            android:visibility="gone"
+            android:layout_gravity="end"/>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

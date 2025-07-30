@@ -18,7 +18,7 @@ const int LED_SALON = 2;    // amarillo
 const int LED_CUARTO = 4;   // rojo
 const int BUZZER_CUARTO = 32; // no conectado
 const int PIR_SALON = 34;
-const int PIR_CUARTO = 15;  // no conectado
+const int PIR_CUARTO = 35;  // no conectado
 
 // MFRC522
 #define SS_PIN 5
@@ -51,12 +51,16 @@ const char* mqtt_rfid_command_topic = "rfid/command";
 const char* mqtt_rfid_result_topic = "rfid/register"; 
 const char* mqtt_rfid_event_topic = "rfid/event";    
 
+WiFiManager wm;
+WiFiManagerParameter custom_mqtt_server("server", "MQTT Broker", mqtt_server, 40);
+WiFiManagerParameter custom_mqtt_port("port", "MQTT Port", mqtt_port, 6);
+WiFiManagerParameter custom_mqtt_client("client", "MQTT Client ID", mqtt_client_id, 32);
+
 void setup() {
   Serial.begin(115200);
   SPI.begin();
   mfrc522.PCD_Init();
 
-  // Pines
   pinMode(LED_SALON, OUTPUT);
   pinMode(LED_CUARTO, OUTPUT);
   pinMode(BUZZER_CUARTO, OUTPUT);
@@ -67,7 +71,6 @@ void setup() {
   digitalWrite(LED_CUARTO, LOW);
   digitalWrite(BUZZER_CUARTO, LOW);
 
-  // cargar config guardada
   preferences.begin("mqtt", false);
   if (preferences.isKey("server")) {
     preferences.getString("server", mqtt_server, sizeof(mqtt_server));
@@ -76,53 +79,86 @@ void setup() {
     Serial.println("Parámetros MQTT cargados de la flash.");
   }
 
-  // wifimanager setup
-  WiFiManager wm;
-  // wm.resetSettings(); <- descomenta para probar flash
-  // delay(1000);
-  WiFiManagerParameter custom_mqtt_server("server", "MQTT Broker", mqtt_server, 40);
-  WiFiManagerParameter custom_mqtt_port("port", "MQTT Port", mqtt_port, 6);
-  WiFiManagerParameter custom_mqtt_client("client", "MQTT Client ID", mqtt_client_id, 32);
-
+  // Inicializa parámetros personalizados solo una vez
   wm.addParameter(&custom_mqtt_server);
   wm.addParameter(&custom_mqtt_port);
   wm.addParameter(&custom_mqtt_client);
 
-  // Portal cautivo para configurar WiFi y MQTT si es necesario
-  if (!wm.autoConnect("CasaIoT-Setup")) {
-    Serial.println("Fallo al conectar y timeout");
-    ESP.restart();
-    delay(1000);
-  }
-
-  // Guardar los parámetros introducidos
-  strcpy(mqtt_server, custom_mqtt_server.getValue());
-  strcpy(mqtt_port, custom_mqtt_port.getValue());
-  strcpy(mqtt_client_id, custom_mqtt_client.getValue());
-
-  // Guardar en la flash
-  preferences.putString("server", mqtt_server);
-  preferences.putString("port", mqtt_port);
-  preferences.putString("client", mqtt_client_id);
-
-  Serial.println("WiFi conectado");
-  Serial.print("IP: "); Serial.println(WiFi.localIP());
-  Serial.print("MQTT Broker: "); Serial.println(mqtt_server);
-  Serial.print("MQTT Port: "); Serial.println(mqtt_port);
-  Serial.print("MQTT Client: "); Serial.println(mqtt_client_id);
-
-  // MQTT
-  client.setServer(mqtt_server, atoi(mqtt_port));
-  client.setCallback(onMqttMessage);
-
-  reconnectMqtt();
+  startWifiAndMqttSetup();
 
   Serial.println("ESP32 IoT Device iniciado");
   Serial.println("Habitaciones: salon, cuarto");
 }
 
+void startWifiAndMqttSetup() {
+  bool conectado = false;
+  while (!conectado) {
+    if (!wm.autoConnect("CasaIoT-Setup")) {
+      Serial.println("Fallo al conectar y timeout");
+      ESP.restart();
+      delay(1000);
+    }
+
+    // no a flash todavia
+    strcpy(mqtt_server, custom_mqtt_server.getValue());
+    strcpy(mqtt_port, custom_mqtt_port.getValue());
+    strcpy(mqtt_client_id, custom_mqtt_client.getValue());
+
+    Serial.println("WiFi conectado");
+    Serial.print("IP: "); Serial.println(WiFi.localIP());
+    Serial.print("MQTT Broker: "); Serial.println(mqtt_server);
+    Serial.print("MQTT Port: "); Serial.println(mqtt_port);
+    Serial.print("MQTT Client: "); Serial.println(mqtt_client_id);
+
+    // MQTT
+    client.setServer(mqtt_server, atoi(mqtt_port));
+    client.setCallback(onMqttMessage);
+
+    if (reconnectMqttWithTimeout(15000)) { // 15 secs de timeout
+      preferences.putString("server", mqtt_server);
+      preferences.putString("port", mqtt_port);
+      preferences.putString("client", mqtt_client_id);
+      conectado = true;
+    } else {
+      Serial.println("No se pudo conectar a MQTT. Reiniciando configuración WiFiManager...");
+      wm.resetSettings(); // borrar config y reintentar
+      delay(1000);
+    }
+  }
+}
+
+bool reconnectMqttWithTimeout(unsigned long timeoutMs) {
+  unsigned long startAttempt = millis();
+  while (!client.connected() && (millis() - startAttempt < timeoutMs)) {
+    Serial.print("Conectando a MQTT...");
+    if (client.connect(mqtt_client_id)) {
+      Serial.println("conectado");
+      client.subscribe("salon/lig/command");
+      client.subscribe("salon/mov/command");
+      client.subscribe("cuarto/lig/command");
+      client.subscribe("cuarto/mov/command");
+      client.subscribe("cuarto/sou/command");
+      client.subscribe("REMOVE");
+      client.subscribe(mqtt_rfid_command_topic);
+      Serial.println("Suscrito a tópicos MQTT");
+      return true;
+    } else {
+      Serial.print("falló, rc=");
+      Serial.print(client.state());
+      Serial.println(" reintentando en 5 segundos");
+      delay(5000);
+    }
+  }
+  return client.connected();
+}
+
 void loop() {
-  if (!client.connected()) reconnectMqtt();
+  if (!client.connected()) {
+    Serial.println("MQTT desconectado. Reiniciando configuración WiFiManager...");
+    wm.resetSettings(); // Borra la configuración WiFi y MQTT
+    delay(1000);
+    ESP.restart(); // Reinicia el ESP para volver a setup()
+  }
   client.loop();
 
   // Sensores de movimiento, si no hay encendido nos ahorramos

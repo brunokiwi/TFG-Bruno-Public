@@ -35,7 +35,9 @@
             android:layout_height="48dp"
             android:layout_marginEnd="8dp"
             android:scaleX="1.2"
-            android:scaleY="1.2" />
+            android:scaleY="1.2"
+            android:thumbTint="@color/switch_thumb_color"
+            android:trackTint="@color/switch_track_color" />
 
     </LinearLayout>
 
@@ -59,7 +61,10 @@
             android:layout_height="48dp"
             android:layout_marginEnd="8dp"
             android:scaleX="1.2"
-            android:scaleY="1.2" />
+            android:scaleY="1.2"
+            android:thumbTint="@color/switch_thumb_color"
+            android:trackTint="@color/switch_track_color" />
+
 
     </LinearLayout>
 
@@ -85,6 +90,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Editar"
+            android:textColor="@color/white"
+            android:backgroundTint="#1289FD"
             android:textSize="14sp" />
 
     </LinearLayout>
@@ -102,7 +109,7 @@
             android:textSize="14sp"
             android:textColor="#333333"
             android:padding="12dp"
-            android:background="#e0e0e0"
+            android:background="#FFFFFF"
             android:layout_marginBottom="16dp" />
 
     </ScrollView>
@@ -113,6 +120,8 @@
         android:layout_height="wrap_content"
         android:text="Actualizar"
         android:textSize="16sp"
+        android:textColor="@color/white"
+        android:backgroundTint="#DD298C" />
         android:layout_marginTop="16dp" />
 
 </LinearLayout>

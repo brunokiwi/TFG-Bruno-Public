@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_create_room" android:title="Crear habitación"/>
+    <item android:id="@+id/menu_events" android:title="Lista de eventos"/>
+    <item android:id="@+id/menu_vacation_mode" android:title="Modo vacaciones"/>
+    <item android:id="@+id/menu_rfid" android:title="Tarjeta RFID"/>
+    <item android:id="@+id/menu_logout" android:title="Cerrar sesión"/>
+</menu>

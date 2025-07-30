@@ -15,40 +15,13 @@
         android:layout_marginBottom="16dp" />
     
     <Button
-        android:id="@+id/vacationModeButton"
+        android:id="@+id/menuButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Activar Modo Vacaciones"
+        android:text="Menú"
+        android:textColor="@color/white"
         android:layout_marginBottom="8dp"
-        android:visibility="gone"
-        android:backgroundTint="#AB91E9" />
-    
-    <Button
-        android:id="@+id/createRoomButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Crear Nueva Habitacion"
-        android:layout_marginBottom="8dp"
-        android:visibility="gone"
-        android:backgroundTint="#4FBFE7" />
-
-    <Button
-        android:id="@+id/rfidButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Tarjeta RFID"
-        android:layout_marginBottom="8dp"
-        android:visibility="gone"
-        android:backgroundTint="#A0D368" />
-        
-    <Button
-        android:id="@+id/viewEventsButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Ver Todos los Eventos"
-        android:layout_marginBottom="8dp"
-        android:visibility="gone"
-        android:backgroundTint="#FDCC54" />
+        android:backgroundTint="#1289FD" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewRooms"
@@ -56,20 +29,26 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <TextView
+        android:id="@+id/vacationModeLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Modo vacaciones activo"
+        android:textColor="#DD298C"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp"/>
+
     <Button
         android:id="@+id/updateButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Actualizar"
         android:textSize="16sp"
-        android:layout_marginTop="16dp" />
-        
-    <Button
-        android:id="@+id/logoutButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Cerrar Sesion"
         android:layout_marginTop="16dp"
-        android:backgroundTint="#EB5463" />
+        android:textColor="@color/white"
+        android:backgroundTint="#DD298C" />
+        
 
 </LinearLayout>

@@ -10,6 +10,9 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.PopupMenu
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,14 +39,12 @@ class MainActivity : ComponentActivity() {
     private lateinit var updateButton: Button
     private val apiService = ApiService()
 
-    private lateinit var createRoomButton: Button
-    private lateinit var viewEventsButton: Button
-    private lateinit var vacationModeButton: Button
-    private lateinit var logoutButton: Button
     private lateinit var userPreferences: UserPreferences
     private lateinit var vacationModeManager: VacationModeManager
     private lateinit var serverPreferences: ServerPreferences
-    private lateinit var rfidButton: Button
+
+    private lateinit var menuButton: Button
+    private lateinit var vacationModeLabel: TextView
 
     private var rfidRegistrationInProgress = false
     private var rfidRegistrationJob: Job? = null
@@ -65,10 +66,59 @@ class MainActivity : ComponentActivity() {
 
         setContentView(R.layout.mainlayout)
 
+        menuButton = findViewById(R.id.menuButton)
+        vacationModeLabel = findViewById(R.id.vacationModeLabel)
+
+        menuButton.setOnClickListener { view ->
+            val popup = PopupMenu(this, view)
+            popup.menuInflater.inflate(R.menu.main_menu, popup.menu)
+
+            // boton rojo cerrar sesion
+            val logoutMenuItem = popup.menu.findItem(R.id.menu_logout)
+            val spannableTitle = android.text.SpannableString(logoutMenuItem.title)
+            spannableTitle.setSpan(
+                android.text.style.ForegroundColorSpan(android.graphics.Color.RED),
+                0, spannableTitle.length, 0
+            )
+            logoutMenuItem.title = spannableTitle
+
+            // permisos
+            popup.menu.findItem(R.id.menu_create_room).isVisible = userPreferences.isAdmin()
+            popup.menu.findItem(R.id.menu_events).isVisible = userPreferences.isAdmin()
+            popup.menu.findItem(R.id.menu_vacation_mode).isVisible = userPreferences.isAdmin()
+            popup.menu.findItem(R.id.menu_rfid).isVisible = true
+
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.menu_create_room -> {
+                        if (!vacationModeManager.isVacationModeActive()) showCreateRoomDialog()
+                        else Toast.makeText(this, "No se pueden crear habitaciones en modo vacaciones", Toast.LENGTH_SHORT).show()
+                        true
+                    }
+                    R.id.menu_events -> {
+                        startActivity(Intent(this, EventsActivity::class.java))
+                        true
+                    }
+                    R.id.menu_vacation_mode -> {
+                        toggleVacationMode()
+                        true
+                    }
+                    R.id.menu_rfid -> {
+                        showRfidDialog()
+                        true
+                    }
+                    R.id.menu_logout -> {
+                        logout()
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
+
         setupRecyclerView()
         setupUpdateButton()
-        setupAdminButtons()
-        setupRfidButton()
 
         requestNotificationPermission()
         subscribeToMovementAlerts()
@@ -81,54 +131,6 @@ class MainActivity : ComponentActivity() {
         apiService.setServerIp(savedIp)
     }
 
-    private fun setupAdminButtons() {
-        createRoomButton = findViewById(R.id.createRoomButton)
-        viewEventsButton = findViewById(R.id.viewEventsButton)
-        vacationModeButton = findViewById(R.id.vacationModeButton)
-        logoutButton = findViewById(R.id.logoutButton)
-
-        if (userPreferences.isAdmin()) {
-            createRoomButton.visibility = View.VISIBLE
-            createRoomButton.setOnClickListener {
-                if (!vacationModeManager.isVacationModeActive()) {
-                    showCreateRoomDialog()
-                } else {
-                    Toast.makeText(
-                        this,
-                        "No se pueden crear habitaciones en modo vacaciones",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-
-            viewEventsButton.visibility = View.VISIBLE
-            viewEventsButton.setOnClickListener {
-                startActivity(Intent(this, EventsActivity::class.java))
-            }
-
-            vacationModeButton.visibility = View.VISIBLE
-            vacationModeButton.setOnClickListener {
-                toggleVacationMode()
-            }
-        } else {
-            createRoomButton.visibility = View.GONE
-            viewEventsButton.visibility = View.GONE
-            vacationModeButton.visibility = View.GONE
-        }
-
-        logoutButton.setOnClickListener {
-            logout()
-        }
-    }
-
-    private fun setupRfidButton() {
-        rfidButton = findViewById(R.id.rfidButton)
-        rfidButton.setOnClickListener {
-            showRfidDialog()
-        }
-        rfidButton.visibility = View.VISIBLE
-    }
-
     private fun checkVacationModeStatus() {
         val serverPreferences = ServerPreferences(this)
         val savedIp = serverPreferences.getServerIp()
@@ -138,7 +140,6 @@ class MainActivity : ComponentActivity() {
                 val isActive = apiService.getVacationModeStatus()
                 withContext(Dispatchers.Main) {
                     vacationModeManager.setVacationModeActive(isActive)
-                    updateVacationModeButton(isActive)
                     updateUIBasedOnVacationMode(isActive)
                 }
             } catch (e: Exception) {
@@ -162,7 +163,6 @@ class MainActivity : ComponentActivity() {
                     if (success) {
                         val newState = !isCurrentlyActive
                         vacationModeManager.setVacationModeActive(newState)
-                        updateVacationModeButton(newState)
                         updateUIBasedOnVacationMode(newState)
 
                         val message = if (newState) {
@@ -191,27 +191,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun updateVacationModeButton(isActive: Boolean) {
-        if (isActive) {
-            vacationModeButton.text = "Desactivar Modo Vacaciones"
-            vacationModeButton.setBackgroundColor(getColor(android.R.color.holo_red_dark))
-        } else {
-            vacationModeButton.text = "Activar Modo Vacaciones"
-            vacationModeButton.setBackgroundColor(getColor(android.R.color.holo_blue_dark))
-        }
-    }
-
     private fun updateUIBasedOnVacationMode(isActive: Boolean) {
-        if (isActive) {
-            createRoomButton.alpha = 0.5f
-            updateButton.alpha = 0.5f
-            updateButton.isEnabled = false
-        } else {
-            createRoomButton.alpha = 1.0f
-            viewEventsButton.alpha = 1.0f
-            updateButton.alpha = 1.0f
-            updateButton.isEnabled = true
-        }
+        // Deshabilita botones si es necesario (puedes ajustar según tus necesidades)
+        updateButton.alpha = if (isActive) 0.5f else 1.0f
+        updateButton.isEnabled = !isActive
+
+        // Muestra el aviso de modo vacaciones
+        vacationModeLabel.visibility = if (isActive) View.VISIBLE else View.GONE
+
+        // Cambia el color de las cards de habitaciones
+        roomAdapter.setVacationModeActive(isActive)
     }
 
     private fun showCreateRoomDialog() {

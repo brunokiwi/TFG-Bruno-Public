@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.TFGiOtAPP" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.TFGiOtAPP" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Cambia este color por el que desees -->
+        <item name="android:windowBackground">@color/mi_background</item>
+        <!-- ...otros atributos... -->
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:textColorSecondary">@color/black</item>
+    </style>
 </resources>

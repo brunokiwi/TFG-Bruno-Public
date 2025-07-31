@@ -27,6 +27,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
+        super.onNewToken(token)
         Log.d("FCM", "Token actualizado: $token")
     }
 

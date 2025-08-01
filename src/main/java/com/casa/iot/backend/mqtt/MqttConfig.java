@@ -1,6 +1,7 @@
 package com.casa.iot.backend.mqtt;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -15,24 +16,27 @@ import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
+
 @Configuration
 public class MqttConfig {
     
+    @Autowired
+    private MqttProperties mqttProperties;
+    
+    @Bean
     public MqttPahoClientFactory mqttClientFactory(){
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
         MqttConnectOptions options = new MqttConnectOptions();
 
-        options.setServerURIs(new String[] {"tcp://localhost:1883"});
-        // options.setUsername("admin");
-        // String pass = "12345678"
-        // options.setPassword(pass.toCharArray());
-        options.setCleanSession(true); // resets everything al restart
+        options.setServerURIs(new String[] {mqttProperties.getBrokerUrl()});
+        options.setCleanSession(true);
+        options.setConnectionTimeout(30);
+        options.setKeepAliveInterval(30);
         
         factory.setConnectionOptions(options);
         return factory;
     }
 
-    // INBOUND / SUBBING / MESSAGE HANDLER
     @Bean
     public MessageChannel mqttInputChannel() {
         return new DirectChannel();
@@ -40,12 +44,15 @@ public class MqttConfig {
 
     @Bean
     public MessageProducer inbound() {
-        MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("serverIn", mqttClientFactory(), "#");
-        adapter.setCompletionTimeout(5000); // wait time for messages
+        MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter(
+            mqttProperties.getClientId() + "-in", 
+            mqttClientFactory(), 
+            "#"
+        );
+        adapter.setCompletionTimeout(5000);
         adapter.setConverter(new DefaultPahoMessageConverter()); 
         adapter.setQos(2); 
         adapter.setOutputChannel(mqttInputChannel());
-
         return adapter;
     }    
 
@@ -59,8 +66,6 @@ public class MqttConfig {
         };
     }
 
-
-    // OUTBOUND / PUBLISHING
     @Bean
     public MessageChannel mqttOutboundChannel(){
         return new DirectChannel();
@@ -69,8 +74,10 @@ public class MqttConfig {
     @Bean
     @ServiceActivator(inputChannel="mqttOutboundChannel")
     public MessageHandler mqttOutbound(){
-        MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler("serverOut",mqttClientFactory());
-
+        MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler(
+            mqttProperties.getClientId() + "-out",
+            mqttClientFactory()
+        );
         messageHandler.setAsync(true);
         messageHandler.setDefaultTopic("#");
         return messageHandler;

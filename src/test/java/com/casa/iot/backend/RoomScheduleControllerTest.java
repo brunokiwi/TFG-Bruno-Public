@@ -80,4 +80,12 @@ class RoomScheduleControllerTest {
         mockMvc.perform(delete("/rooms/salon/schedules/" + id))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void testCreateScheduleBadRequest() throws Exception {
+        mockMvc.perform(post("/rooms/salon/schedules")
+                .param("type", "light")
+                .param("state", "true"))
+                .andExpect(status().isBadRequest());
+    }
 }

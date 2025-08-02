@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
@@ -61,11 +62,30 @@ class RoomScheduleServiceTest {
     void testGetSchedulesForTime() {
         Room room = new Room("salon");
         RoomSchedule schedule = new RoomSchedule(room, "light", true, LocalTime.of(20, 0));
-        when(scheduleRepository.findByTimeHourAndTimeMinute(20, 0)).thenReturn(Collections.singletonList(schedule));
+        when(scheduleRepository.findByScheduleTypeAndTimeHourAndTimeMinute("puntual", 20, 0)).thenReturn(Collections.singletonList(schedule));
 
         List<RoomSchedule> result = scheduleService.getPunctualSchedulesForTime(LocalTime.of(20, 0));
 
         assertEquals(1, result.size());
         assertEquals(LocalTime.of(20, 0), result.get(0).getTime());
+    }
+
+    @Test
+    void testGetAllSchedulesReturnsList() {
+        Room room = new Room("salon");
+        RoomSchedule schedule = new RoomSchedule(room, "alarm", true, LocalTime.of(8, 0));
+        when(scheduleRepository.findAll()).thenReturn(List.of(schedule));
+
+        List<RoomSchedule> result = scheduleService.getAllSchedules();
+
+        assertEquals(1, result.size());
+        assertEquals("alarm", result.get(0).getType());
+    }
+
+    @Test
+    void testGetAllSchedulesReturnsEmpty() {
+        when(scheduleRepository.findAll()).thenReturn(Collections.emptyList());
+        List<RoomSchedule> result = scheduleService.getAllSchedules();
+        assertTrue(result.isEmpty());
     }
 }

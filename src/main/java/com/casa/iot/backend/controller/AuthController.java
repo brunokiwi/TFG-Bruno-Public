@@ -120,14 +120,6 @@ public class AuthController {
         String adminUsername = requestData.get("adminUsername");
         
         try {
-            // Verificar que el usuario a eliminar existe
-            if (!authService.userExists(usernameToDelete)) {
-                return ResponseEntity.status(404).body(Map.of(
-                    "success", false,
-                    "message", "Usuario no encontrado"
-                ));
-            }
-            
             boolean deleted = authService.deleteUser(usernameToDelete);
             
             if (deleted) {

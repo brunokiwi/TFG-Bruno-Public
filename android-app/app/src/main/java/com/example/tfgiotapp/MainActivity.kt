@@ -313,9 +313,14 @@ class MainActivity : ComponentActivity() {
             try {
                 val rooms = apiService.getAllRooms()
                 withContext(Dispatchers.Main) {
-                    roomAdapter.updateRooms(rooms)
                     if (rooms.isEmpty()) {
-                        showSingleToast("No hay habitaciones registradas")
+                        if (!apiService.checkServerConnection()) {
+                            showSingleToast("Error: No se pudo conectar al servidor")
+                        } else {
+                            showSingleToast("No hay habitaciones registradas")
+                        }
+                    } else {
+                        roomAdapter.updateRooms(rooms)
                     }
                 }
             } catch (e: Exception) {

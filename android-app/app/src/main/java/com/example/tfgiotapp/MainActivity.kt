@@ -94,7 +94,7 @@ class MainActivity : ComponentActivity() {
                 when (item.itemId) {
                     R.id.menu_create_room -> {
                         if (!vacationModeManager.isVacationModeActive()) showCreateRoomDialog()
-                        else Toast.makeText(this, "No se pueden crear habitaciones en modo vacaciones", Toast.LENGTH_SHORT).show()
+                        else showSingleToast("No se pueden crear habitaciones en modo vacaciones")
                         true
                     }
                     R.id.menu_events -> {
@@ -172,22 +172,14 @@ class MainActivity : ComponentActivity() {
                         } else {
                             "Modo vacaciones desactivado"
                         }
-                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+                        showSingleToast(message)
                     } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Error al cambiar el modo vacaciones",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showSingleToast("Error al cambiar el modo vacaciones")
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Error de conexión: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showSingleToast("Error de conexión: ${e.message}")
                 }
             }
         }
@@ -215,7 +207,7 @@ class MainActivity : ComponentActivity() {
             if (roomName.isNotEmpty()) {
                 createNewRoom(roomName)
             } else {
-                Toast.makeText(this, "Por favor ingresa un nombre", Toast.LENGTH_SHORT).show()
+                showSingleToast("Por favor ingresa un nombre")
             }
         }
 
@@ -229,7 +221,7 @@ class MainActivity : ComponentActivity() {
     private fun createNewRoom(roomName: String) {
         val currentUser = userPreferences.getCurrentUser()
         if (currentUser == null) {
-            Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show()
+            showSingleToast("Error: Usuario no autenticado")
             return
         }
 
@@ -239,27 +231,15 @@ class MainActivity : ComponentActivity() {
 
                 withContext(Dispatchers.Main) {
                     if (success) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Habitación '$roomName' creada con éxito",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showSingleToast("Habitación '$roomName' creada con éxito")
                         loadRooms()
                     } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Error al crear la habitación",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        showSingleToast("Error al crear la habitación")
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Error de conexión: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    showSingleToast("Error de conexión: ${e.message}")
                 }
             }
         }
@@ -302,11 +282,7 @@ class MainActivity : ComponentActivity() {
             if (!vacationModeManager.isVacationModeActive()) {
                 loadRooms()
             } else {
-                Toast.makeText(
-                    this,
-                    "No se pueden actualizar datos en modo vacaciones",
-                    Toast.LENGTH_SHORT
-                ).show()
+                showSingleToast("No se pueden actualizar datos en modo vacaciones")
             }
         }
     }
@@ -318,28 +294,15 @@ class MainActivity : ComponentActivity() {
 
                 withContext(Dispatchers.Main) {
                     if (isConnected) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Conectado al servidor correctamente",
-                            Toast.LENGTH_LONG
-                        ).show()
-
+                        showSingleToast("Conectado al servidor correctamente")
                         loadRooms()
                     } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Error: No se pudo conectar al servidor",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        showSingleToast("Error: No se pudo conectar al servidor")
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Error de conexión: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    showSingleToast("Error de conexión: ${e.message}")
                 }
             }
         }
@@ -352,20 +315,12 @@ class MainActivity : ComponentActivity() {
                 withContext(Dispatchers.Main) {
                     roomAdapter.updateRooms(rooms)
                     if (rooms.isEmpty()) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "No hay habitaciones registradas",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showSingleToast("No hay habitaciones registradas")
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Error al cargar habitaciones: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showSingleToast("Error al cargar habitaciones: ${e.message}")
                 }
             }
         }
@@ -377,11 +332,7 @@ class MainActivity : ComponentActivity() {
             intent.putExtra("roomName", room.name)
             startActivity(intent)
         } else {
-            Toast.makeText(
-                this,
-                "No se pueden modificar habitaciones en modo vacaciones",
-                Toast.LENGTH_SHORT
-            ).show()
+            showSingleToast("No se pueden modificar habitaciones en modo vacaciones")
         }
     }
 

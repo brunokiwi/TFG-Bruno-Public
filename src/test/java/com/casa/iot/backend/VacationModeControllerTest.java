@@ -40,4 +40,15 @@ class VacationModeControllerTest {
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.active").value(false));
     }
+
+    @Test
+    void activateAndDeactivateVacationMode() throws Exception {
+        mockMvc.perform(post("/vacation-mode/activate"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.active").value(true));
+
+        mockMvc.perform(post("/vacation-mode/deactivate"))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.active").value(false));
+    }
 }

@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.casa.iot.backend.model.Room;
 import com.casa.iot.backend.repository.RoomRepository;
+import com.casa.iot.backend.repository.RoomScheduleRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -25,8 +26,12 @@ class RoomControllerTest {
     @Autowired
     private RoomRepository roomRepo;
 
+    @Autowired
+    private RoomScheduleRepository scheduleRepo;
+
     @BeforeEach
     void init() {
+        scheduleRepo.deleteAll(); // Borra primero los schedules
         roomRepo.deleteAll();
         roomRepo.save(new Room("kitchen"));
     }
@@ -62,5 +67,24 @@ class RoomControllerTest {
         mockMvc.perform(get("/rooms"))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void createRoomAsAdmin() throws Exception {
+        mockMvc.perform(post("/rooms")
+                .param("roomName", "newroom")
+                .param("username", "admin")) // asume que admin es admin
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.room.name").value("newroom"));
+    }
+
+    @Test
+    void createRoomAsNonAdmin() throws Exception {
+        mockMvc.perform(post("/rooms")
+                .param("roomName", "failroom")
+                .param("username", "user")) // asume que user no es admin
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.success").value(false));
     }
 }
